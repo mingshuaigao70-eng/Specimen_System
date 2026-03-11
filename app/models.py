@@ -1,4 +1,5 @@
-from app.extensions import db
+# app/models.py
+from .extensions import db
 from flask_login import UserMixin
 from datetime import datetime
 
@@ -6,6 +7,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
 class FishSpecimen(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,9 +21,8 @@ class FishSpecimen(db.Model):
     family = db.Column(db.String(50), nullable=False)
     genus = db.Column(db.String(50), nullable=False)
     species = db.Column(db.String(50), nullable=False)
-    collector = db.Column(db.String(100))
-    collected_at = db.Column(db.DateTime, default=datetime.utcnow)
-    location = db.Column(db.String(200))
-    category = db.Column(db.String(50))
-    image_urls = db.Column(db.JSON)
-    qr_code_url = db.Column(db.String(200))
+    collector = db.Column(db.String(100), nullable=False)
+    collected_at = db.Column(db.DateTime, nullable=False)
+    location = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

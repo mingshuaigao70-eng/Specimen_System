@@ -5,3 +5,4 @@ Flask-WTF
 qrcode
 pillow
 werkzeug
+sqlalchemy-utils
