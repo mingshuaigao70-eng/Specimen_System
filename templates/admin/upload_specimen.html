@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>上传标本</title>
+
+<style>
+
+body{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    background:#eef2f7;
+    margin:0;
+}
+
+/* 页面布局 */
+
+.page{
+    display:flex;
+    padding:30px;
+    gap:30px;
+}
+
+/* 左侧分类 */
+
+.category-panel{
+    width:220px;
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    height:fit-content;
+}
+
+.category-panel h3{
+    margin-top:0;
+    font-size:18px;
+}
+
+/* 右侧表单 */
+
+.container{
+    flex:1;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+/* 三列布局 */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+}
+
+/* 字段 */
+
+.form-item{
+    display:flex;
+    flex-direction:column;
+}
+
+label{
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+input,
+textarea,
+select{
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    font-size:15px;
+}
+
+textarea{
+    resize:vertical;
+}
+
+/* 图片上传占整行 */
+
+.full-row{
+    grid-column:1 / span 3;
+}
+
+/* 图片预览 */
+
+.preview-container{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:10px;
+}
+
+.preview-container img{
+    width:120px;
+    height:120px;
+    object-fit:cover;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+/* 提交按钮 */
+
+button{
+    display:block;
+    width:200px;
+    margin:30px auto 0;
+    padding:12px;
+    font-size:18px;
+    background:#4CAF50;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#45a049;
+}
+
+/* 移动端 */
+
+@media (max-width:900px){
+
+.page{
+flex-direction:column;
+}
+
+.form-grid{
+grid-template-columns:1fr;
+}
+
+.full-row{
+grid-column:1;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="page">
+
+<!-- 左侧大类选择 -->
+
+<div class="category-panel">
+
+<h3>标本大类</h3>
+
+<select name="category_id" form="specimenForm" required>
+
+<option value="">请选择大类</option>
+
+{% for cat in categories %}
+<option value="{{ cat.id }}">{{ cat.name }}</option>
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<!-- 右侧表单 -->
+
+<div class="container">
+
+<h2>上传标本</h2>
+
+<form id="specimenForm" method="POST" enctype="multipart/form-data">
+
+<div class="form-grid">
+
+<div class="form-item">
+<label>标本编号*</label>
+<input type="text" name="specimen_number" required>
+</div>
+
+<div class="form-item">
+<label>中文名</label>
+<input type="text" name="chinese_name">
+</div>
+
+<div class="form-item">
+<label>拉丁名*</label>
+<input type="text" name="latin_name" required>
+</div>
+
+<div class="form-item">
+<label>别名</label>
+<textarea name="alias"></textarea>
+</div>
+
+<div class="form-item">
+<label>门</label>
+<input type="text" name="phylum">
+</div>
+
+<div class="form-item">
+<label>纲</label>
+<input type="text" name="class_name">
+</div>
+
+<div class="form-item">
+<label>目</label>
+<input type="text" name="order">
+</div>
+
+<div class="form-item">
+<label>科</label>
+<input type="text" name="family">
+</div>
+
+<div class="form-item">
+<label>属</label>
+<input type="text" name="genus">
+</div>
+
+<div class="form-item">
+<label>种</label>
+<input type="text" name="species">
+</div>
+
+<div class="form-item">
+<label>采集人</label>
+<input type="text" name="collector">
+</div>
+
+<div class="form-item">
+<label>采集时间*</label>
+<input type="datetime-local" name="collect_time" required>
+</div>
+
+<div class="form-item">
+<label>采集地点</label>
+<input type="text" name="collect_location">
+</div>
+
+<div class="form-item">
+<label>经度</label>
+<input type="number" step="0.0000001" name="longitude">
+</div>
+
+<div class="form-item">
+<label>纬度</label>
+<input type="number" step="0.000001" name="latitude">
+</div>
+
+<div class="form-item">
+<label>鉴定人</label>
+<input type="text" name="appraiser">
+</div>
+
+<div class="form-item">
+<label>鉴定时间</label>
+<input type="datetime-local" name="appraisal_time">
+</div>
+
+<div class="form-item full-row">
+<label>其他信息</label>
+<textarea name="other_info" rows="3" placeholder="可填写 JSON 格式信息"></textarea>
+</div>
+
+<div class="form-item full-row">
+<label>上传图片</label>
+<input type="file" name="images" id="images" multiple accept="image/*">
+</div>
+
+<div class="preview-container full-row" id="preview-container"></div>
+
+</div>
+
+<button type="submit">提交</button>
+
+</form>
+
+</div>
+
+</div>
+
+<script>
+
+const imagesInput=document.getElementById('images')
+const previewContainer=document.getElementById('preview-container')
+
+imagesInput.addEventListener('change',function(){
+
+previewContainer.innerHTML=''
+
+const files=this.files
+
+for(let i=0;i<files.length;i++){
+
+const file=files[i]
+
+if(!file.type.startsWith('image/')) continue
+
+const reader=new FileReader()
+
+reader.onload=function(e){
+
+const img=document.createElement('img')
+
+img.src=e.target.result
+
+previewContainer.appendChild(img)
+
+}
+
+reader.readAsDataURL(file)
+
+}
+
+})
+
+</script>
+
+</body>
+</html>
