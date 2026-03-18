@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>新增用户</title>
+<style>
+.page-wrapper{
+    background:#eef2f7;
+    padding:20px;
+    min-height:100vh;
+}
+
+.container-box{
+    max-width:400px;
+    margin:30px auto;
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+label{
+    display:block;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+input, select{
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+button{
+    margin-top:15px;
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    background:#27ae60;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1e8449;
+}
+
+/* flash 消息 */
+.flash-message{
+    margin-bottom:10px;
+}
+.flash-message div{
+    padding:10px;
+    border-radius:6px;
+    margin-bottom:5px;
+}
+.flash-message .success{background:#d4edda; color:#155724;}
+.flash-message .error{background:#f8d7da; color:#721c24;}
+.flash-message .warning{background:#fff3cd; color:#856404;}
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+<div class="container-box">
+
+<h2>新增用户</h2>
+
+<!-- flash 消息 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-message">
+    {% for category, msg in messages %}
+        <div class="{{ category }}">{{ msg }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<form method="post">
+    <label>用户名</label>
+    <input type="text" name="username" required>
+
+    <label>密码</label>
+    <input type="password" name="password" required>
+
+    <label>角色</label>
+    <select name="role">
+        <option value="superadmin">超级管理员</option>
+        <option value="admin">管理员</option>
+        <option value="user" selected>普通用户</option>
+    </select>
+
+    <button type="submit">新增用户</button>
+</form>
+
+</div>
+</div>
+</body>
+</html>

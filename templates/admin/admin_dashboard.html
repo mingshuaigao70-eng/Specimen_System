@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>后台管理平台</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+body{margin:0;font-family:"微软雅黑",sans-serif;background:#f5f6fa;}
+header{height:60px;background:#34495e;color:white;display:flex;align-items:center;justify-content:space-between;padding:0 30px;}
+header a{color:white;text-decoration:none;margin-left:20px;}
+.main-layout{display:flex;height:calc(100vh - 60px);}
+.sidebar{width:210px;background:#2c3e50;color:white;padding-top:20px;flex-shrink:0;}
+.sidebar a{display:block;padding:10px 20px;color:white;text-decoration:none;}
+.sidebar a:hover{background:#34495e;}
+.sidebar a.active{background:#1abc9c;}
+.main-content{flex:1;display:flex;flex-direction:column;}
+.subnav{background:#ecf0f1;padding:10px 15px;border-bottom:1px solid #ddd;display:none;gap:10px;display:flex;}
+.subnav a{padding:6px 12px;border-radius:4px;text-decoration:none;color:#333;}
+.subnav a.active{background:#1abc9c;color:white;}
+.content-frame{flex:1;}
+iframe{width:100%;height:100%;border:none;}
+</style>
+</head>
+
+<body>
+<header>
+    <div>后台管理平台</div>
+    <div>
+        <a href="{{ url_for('main.index') }}">返回前台</a>
+        <a href="{{ url_for('auth.logout') }}">退出登录</a>
+    </div>
+</header>
+
+<div class="main-layout">
+
+    <!-- 左侧导航 -->
+    <div class="sidebar">
+        {% if current_user.role == 'superadmin' %}
+        <a href="javascript:void(0);" id="menu_users">用户管理</a>
+        {% endif %}
+
+        {% if current_user.role in ['superadmin','admin'] %}
+        <a href="javascript:void(0);" id="menu_specimen">标本管理</a>
+        <a href="javascript:void(0);" id="menu_upload">上传标本</a>
+        {% endif %}
+    </div>
+
+    <!-- 主体区域 -->
+    <div class="main-content">
+
+        <!-- 二级导航（仅标本模块显示） -->
+        <div id="specimen_subnav" class="subnav">
+            <a href="javascript:void(0);" id="sub_categories">标本大类管理</a>
+            <a href="javascript:void(0);" id="sub_specimens">标本信息维护</a>
+        </div>
+
+        <!-- 内容显示 iframe -->
+        <div class="content-frame">
+            <iframe id="content_frame" src=""></iframe>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// 获取 iframe
+const iframe = document.getElementById("content_frame");
+
+// 一级菜单点击
+function switchModule(module){
+    // 一级菜单高亮
+    document.querySelectorAll(".sidebar a").forEach(a=>a.classList.remove("active"));
+    document.getElementById("menu_" + module).classList.add("active");
+
+    // 隐藏所有二级菜单
+    document.querySelectorAll(".subnav").forEach(div=>{
+        div.style.display="none";
+        div.querySelectorAll("a").forEach(a=>a.classList.remove("active"));
+    });
+
+    // 根据模块显示 iframe 和二级菜单
+    if(module==="users"){
+        iframe.src = "{{ url_for('admin.manage_users') }}";
+    }
+    else if(module==="specimen"){
+        const subnav = document.getElementById("specimen_subnav");
+        subnav.style.display="flex";
+        // 默认加载第一个子菜单
+        iframe.src = "{{ url_for('admin.list_categories') }}";
+        document.getElementById("sub_categories").classList.add("active");
+    }
+    else if(module==="upload"){
+        iframe.src = "{{ url_for('admin.upload_specimen') }}";
+    }
+}
+
+// 二级菜单点击
+function loadSubPage(url, element){
+    iframe.src = url;
+    element.parentNode.querySelectorAll("a").forEach(a=>a.classList.remove("active"));
+    element.classList.add("active");
+}
+
+// 页面加载默认打开
+window.onload = function(){
+    {% if current_user.role == 'superadmin' %}
+        switchModule('users');
+    {% else %}
+        switchModule('specimen');
+    {% endif %}
+
+    // 绑定二级菜单点击
+    document.getElementById("sub_categories").onclick = function(){
+        loadSubPage("{{ url_for('admin.list_categories') }}", this);
+    };
+    document.getElementById("sub_specimens").onclick = function(){
+        loadSubPage("{{ url_for('admin.manage_specimens') }}", this);
+    };
+
+    // 绑定一级菜单点击
+    {% if current_user.role == 'superadmin' %}
+    document.getElementById("menu_users").onclick = function(){ switchModule('users'); };
+    {% endif %}
+    {% if current_user.role in ['superadmin','admin'] %}
+    document.getElementById("menu_specimen").onclick = function(){ switchModule('specimen'); };
+    document.getElementById("menu_upload").onclick = function(){ switchModule('upload'); };
+    {% endif %}
+}
+</script>
+
+</body>
+</html>
