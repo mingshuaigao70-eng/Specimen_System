@@ -35,85 +35,85 @@ iframe{width:100%;height:100%;border:none;}
 
 <div class="main-layout">
 
-<!-- 左侧导航 -->
-<div class="sidebar">
-{% if current_user.role == 'superadmin' %}
-<a href="javascript:void(0);" id="menu_users"
-onclick="switchModule('users','{{ url_for('admin.manage_users') }}',this)">
-用户管理
-</a>
-{% endif %}
+    <!-- 左侧导航 -->
+    <div class="sidebar">
+        {% if current_user.role == 'superadmin' %}
+        <a href="javascript:void(0);" id="menu_users">用户管理</a>
+        {% endif %}
 
-{% if current_user.role in ['superadmin','admin'] %}
-<a href="javascript:void(0);" id="menu_specimen"
-onclick="switchModule('specimen','{{ url_for('admin.list_categories') }}',this)">
-标本管理
-</a>
+        {% if current_user.role in ['superadmin','admin'] %}
+        <a href="javascript:void(0);" id="menu_specimen">标本管理</a>
+        <a href="javascript:void(0);" id="menu_upload">上传标本</a>
+        {% endif %}
+    </div>
 
-<a href="javascript:void(0);" id="menu_upload"
-onclick="switchModule('upload','{{ url_for('admin.upload_specimen') }}',this)">
-上传标本
-</a>
-{% endif %}
-</div>
+    <!-- 主体区域 -->
+    <div class="main-content">
 
-<!-- 主体区域 -->
-<div class="main-content">
+        <!-- 二级导航（仅标本模块显示） -->
+        <div id="specimen_subnav" class="subnav">
+            <a href="javascript:void(0);" id="sub_categories">标本大类管理</a>
+            <a href="javascript:void(0);" id="sub_specimens">标本信息维护</a>
+        </div>
 
-<!-- 二级导航 -->
-<div id="specimen_subnav" class="subnav">
-<a href="javascript:void(0);" class="active"
-onclick="loadSubPage('{{ url_for('admin.list_categories') }}',this)">
-标本大类管理
-</a>
-<a href="javascript:void(0);"
-onclick="loadSubPage('{{ url_for('admin.manage_specimens') }}',this)">
-标本信息维护
-</a>
-</div>
+        <!-- iframe -->
+        <div class="content-frame">
+            <iframe id="content_frame" src=""></iframe>
+        </div>
 
-<!-- iframe -->
-<div class="content-frame">
-<iframe id="content_frame"></iframe>
-</div>
-
-</div>
+    </div>
 </div>
 
 <script>
-// 切换二级页面
-function loadSubPage(url,element){
-    document.getElementById("content_frame").src=url;
-    let links=element.parentNode.querySelectorAll("a");
-    links.forEach(a=>a.classList.remove("active"));
-    element.classList.add("active");
-}
+// 获取 iframe
+const iframe = document.getElementById("content_frame");
 
-// 一级菜单切换
-function switchModule(module,url,element){
-    document.getElementById("content_frame").src=url;
+// 一级菜单点击事件
+function switchModule(module){
+    // 一级菜单高亮
+    document.querySelectorAll(".sidebar a").forEach(a=>a.classList.remove("active"));
+    document.getElementById("menu_" + module).classList.add("active");
 
+    // 隐藏所有二级菜单
     document.querySelectorAll(".subnav").forEach(div=>{
         div.style.display="none";
+        div.querySelectorAll("a").forEach(a=>a.classList.remove("active"));
     });
 
-    if(module==="specimen"){
-        document.getElementById("specimen_subnav").style.display="block";
+    // 根据模块显示 iframe 和二级菜单
+    if(module==="users"){
+        iframe.src = "{{ url_for('admin.manage_users') }}";
     }
+    else if(module==="specimen"){
+        const subnav = document.getElementById("specimen_subnav");
+        subnav.style.display="block";
+        // 默认加载第一个子菜单
+        iframe.src = "{{ url_for('admin.list_categories') }}";
+        document.getElementById("sub_categories").classList.add("active");
+    }
+    else if(module==="upload"){
+        iframe.src = "{{ url_for('admin.upload_specimen') }}";
+    }
+}
 
-    document.querySelectorAll(".sidebar a").forEach(a=>{
-        a.classList.remove("active");
-    });
+// 二级菜单点击
+function loadSubPage(url, element){
+    iframe.src = url;
+    element.parentNode.querySelectorAll("a").forEach(a=>a.classList.remove("active"));
     element.classList.add("active");
 }
 
-// 默认打开页面
-window.onload=function(){
-{% if current_user.role == 'superadmin' %}
-switchModule('users','{{ url_for("admin.manage_users") }}',document.getElementById("menu_users"));
-{% else %}
-switchModule('specimen','{{ url_for("admin.list_categories") }}',document.getElementById("menu_specimen"));
-{% endif %}
+// 页面加载默认打开
+window.onload = function(){
+    {% if current_user.role == 'superadmin' %}
+        switchModule('users');
+    {% else %}
+        switchModule('specimen');
+    {% endif %}
+
+    // 绑定二级菜单点击
+    document.getElementById("sub_categories").onclick = function(){ loadSubPage("{{ url_for('admin.list_categories') }}", this); };
+    document.getElementById("sub_specimens").onclick = function(){ loadSubPage("{{ url_for('admin.manage_specimens') }}", this); };
 }
 </script>
 

@@ -2,25 +2,141 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>标本管理</title>
+<title>标本信息维护</title>
 <style>
-table { width:100%; border-collapse: collapse; }
-th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-th { background: #f5f5f5; }
-tr:hover { background: #f1f1f1; }
+.page-wrapper{
+    background:#eef2f7;
+    padding:20px;
+    min-height:100vh;
+}
+
+.container-box{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{
+    margin-bottom:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
+
+th, td{
+    padding:10px;
+    border:1px solid #ddd;
+    text-align:center;
+}
+
+th{
+    background:#f5f7fa;
+}
+
+tr:hover{
+    background:#f1f1f1;
+}
+
+.btn{
+    padding:6px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.btn-edit{
+    background:#409eff;
+    color:white;
+}
+
+.btn-delete{
+    background:#f56c6c;
+    color:white;
+}
+
+.btn-add{
+    background:#27ae60;
+    color:white;
+    padding:8px 16px;
+    display:inline-block;
+    margin-bottom:10px;
+    text-decoration:none;
+    border-radius:6px;
+}
+
+.btn:hover{
+    opacity:0.85;
+}
+
+.flash-message{
+    margin-bottom:10px;
+}
+.flash-message li{
+    list-style:none;
+    padding:5px 0;
+}
 </style>
 </head>
 <body>
-<h2>标本管理</h2>
+<div class="page-wrapper">
+<div class="container-box">
+
+<h2>标本信息维护</h2>
+
+<a href="{{ url_for('admin.upload_specimen') }}" class="btn-add">上传新标本</a>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flash-message">
+            {% for category, msg in messages %}
+                <li style="color: {% if category=='error' %}red{% else %}green{% endif %};">
+                    {{ msg }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+{% if specimens %}
 <table>
-<tr><th>ID</th><th>名称</th><th>分类</th></tr>
-{% for specimen in specimens %}
-<tr>
-<td>{{ specimen.id }}</td>
-<td>{{ specimen.name }}</td>
-<td>{{ specimen.category }}</td>
-</tr>
-{% endfor %}
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>标本编号</th>
+            <th>中文名</th>
+            <th>拉丁名</th>
+            <th>类别</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in specimens %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.specimen_number }}</td>
+            <td>{{ s.chinese_name }}</td>
+            <td>{{ s.latin_name }}</td>
+            <td>{{ s.category.name if s.category else '无' }}</td>
+            <td>
+                <a href="{{ url_for('admin.upload_specimen') }}" class="btn btn-edit">编辑</a>
+                <form action="#" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-delete" onclick="return confirm('确定删除吗？')">删除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+{% else %}
+<p>暂无标本数据。</p>
+{% endif %}
+
+</div>
+</div>
 </body>
 </html>

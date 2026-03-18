@@ -1,6 +1,4 @@
-# config.py
 import os
-
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here')
@@ -12,5 +10,8 @@ class Config:
     # 上传目录
     UPLOAD_FOLDER_IMAGES = os.path.join(os.getcwd(), 'static/images')
     UPLOAD_FOLDER_QR = os.path.join(os.getcwd(), 'static/qrcodes')
+
+    # 文件上传限制
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 最大上传16MB
+    MAX_IMAGE_SIZE = 1 * 1024 * 1024      # 单张图片最大2MB
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}

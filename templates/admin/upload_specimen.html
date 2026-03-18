@@ -3,25 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>上传标本</title>
-
 <style>
-
-body{
+.page-wrapper{
     font-family:"Helvetica Neue",Arial,sans-serif;
     background:#eef2f7;
-    margin:0;
+    min-height:100vh;
+    padding:20px;
 }
-
-/* 页面布局 */
 
 .page{
     display:flex;
-    padding:30px;
     gap:30px;
 }
 
 /* 左侧分类 */
-
 .category-panel{
     width:220px;
     background:white;
@@ -31,14 +26,8 @@ body{
     height:fit-content;
 }
 
-.category-panel h3{
-    margin-top:0;
-    font-size:18px;
-}
-
 /* 右侧表单 */
-
-.container{
+.container-box{
     flex:1;
     background:white;
     padding:30px;
@@ -51,15 +40,11 @@ h2{
     margin-bottom:30px;
 }
 
-/* 三列布局 */
-
 .form-grid{
     display:grid;
     grid-template-columns:repeat(3,1fr);
     gap:20px;
 }
-
-/* 字段 */
 
 .form-item{
     display:flex;
@@ -71,9 +56,7 @@ label{
     margin-bottom:5px;
 }
 
-input,
-textarea,
-select{
+input, textarea, select{
     padding:10px;
     border-radius:6px;
     border:1px solid #ccc;
@@ -84,14 +67,11 @@ textarea{
     resize:vertical;
 }
 
-/* 图片上传占整行 */
-
 .full-row{
     grid-column:1 / span 3;
 }
 
 /* 图片预览 */
-
 .preview-container{
     display:flex;
     flex-wrap:wrap;
@@ -107,8 +87,13 @@ textarea{
     border-radius:6px;
 }
 
-/* 提交按钮 */
+/* 错误提示 */
+.error-msg{
+    color:red;
+    font-size:13px;
+}
 
+/* 提交按钮 */
 button{
     display:block;
     width:200px;
@@ -126,56 +111,62 @@ button:hover{
     background:#45a049;
 }
 
-/* 移动端 */
-
 @media (max-width:900px){
-
-.page{
-flex-direction:column;
+    .page{
+        flex-direction:column;
+    }
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+    .full-row{
+        grid-column:1;
+    }
 }
 
-.form-grid{
-grid-template-columns:1fr;
+/* flash 消息 */
+.flash-message{
+    margin-bottom:10px;
 }
-
-.full-row{
-grid-column:1;
+.flash-message div{
+    padding:10px;
+    border-radius:6px;
+    margin-bottom:5px;
 }
-
-}
-
+.flash-message .success{background:#d4edda; color:#155724;}
+.flash-message .error{background:#f8d7da; color:#721c24;}
+.flash-message .warning{background:#fff3cd; color:#856404;}
 </style>
-
 </head>
-
 <body>
-
+<div class="page-wrapper">
 <div class="page">
 
-<!-- 左侧大类选择 -->
-
+<!-- 左侧分类 -->
 <div class="category-panel">
-
 <h3>标本大类</h3>
-
 <select name="category_id" form="specimenForm" required>
-
 <option value="">请选择大类</option>
-
 {% for cat in categories %}
 <option value="{{ cat.id }}">{{ cat.name }}</option>
 {% endfor %}
-
 </select>
-
 </div>
 
-
-<!-- 右侧表单 -->
-
-<div class="container">
+<!-- 右侧 -->
+<div class="container-box">
 
 <h2>上传标本</h2>
+
+<!-- flash消息 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-message">
+    {% for category, msg in messages %}
+        <div class="{{ category }}">{{ msg }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
 
 <form id="specimenForm" method="POST" enctype="multipart/form-data">
 
@@ -213,7 +204,7 @@ grid-column:1;
 
 <div class="form-item">
 <label>目</label>
-<input type="text" name="order">
+<input type="text" name="order_name">
 </div>
 
 <div class="form-item">
@@ -268,12 +259,13 @@ grid-column:1;
 
 <div class="form-item full-row">
 <label>其他信息</label>
-<textarea name="other_info" rows="3" placeholder="可填写 JSON 格式信息"></textarea>
+<textarea name="other_info" rows="3"></textarea>
 </div>
 
 <div class="form-item full-row">
-<label>上传图片</label>
+<label>上传图片（单张≤1MB）</label>
 <input type="file" name="images" id="images" multiple accept="image/*">
+<div class="error-msg" id="error-msg"></div>
 </div>
 
 <div class="preview-container full-row" id="preview-container"></div>
@@ -285,45 +277,52 @@ grid-column:1;
 </form>
 
 </div>
-
+</div>
 </div>
 
 <script>
+const imagesInput = document.getElementById('images')
+const previewContainer = document.getElementById('preview-container')
+const errorMsg = document.getElementById('error-msg')
 
-const imagesInput=document.getElementById('images')
-const previewContainer=document.getElementById('preview-container')
+const MAX_SIZE = 1 * 1024 * 1024 // 1MB
 
-imagesInput.addEventListener('change',function(){
+imagesInput.addEventListener('change', function(){
 
-previewContainer.innerHTML=''
+    previewContainer.innerHTML = ''
+    errorMsg.innerText = ''
 
-const files=this.files
+    const files = this.files
 
-for(let i=0;i<files.length;i++){
+    for(let i = 0; i < files.length; i++){
 
-const file=files[i]
+        const file = files[i]
 
-if(!file.type.startsWith('image/')) continue
+        // 类型校验
+        if(!file.type.startsWith('image/')){
+            errorMsg.innerText = '只能上传图片文件'
+            this.value = ''
+            return
+        }
 
-const reader=new FileReader()
+        // 大小校验
+        if(file.size > MAX_SIZE){
+            errorMsg.innerText = '图片不能超过1MB'
+            this.value = ''
+            return
+        }
 
-reader.onload=function(e){
+        const reader = new FileReader()
 
-const img=document.createElement('img')
+        reader.onload = function(e){
+            const img = document.createElement('img')
+            img.src = e.target.result
+            previewContainer.appendChild(img)
+        }
 
-img.src=e.target.result
-
-previewContainer.appendChild(img)
-
-}
-
-reader.readAsDataURL(file)
-
-}
-
+        reader.readAsDataURL(file)
+    }
 })
-
 </script>
-
 </body>
 </html>

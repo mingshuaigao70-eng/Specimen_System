@@ -1,81 +1,146 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>用户管理</title>
-    <style>
-        body { font-family: "微软雅黑", sans-serif; margin:0; background:#f5f5f5; }
-        h1 { margin-top: 0; padding: 10px 0; color: #333; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-        th { background: #f5f5f5; }
-        tr:hover { background: #f1f1f1; }
-        .action-btn { padding: 5px 10px; border:none; border-radius:4px; color:#fff; cursor:pointer; margin-right:5px; font-size:0.9em; }
-        .edit-btn { background:#3498db; }
-        .delete-btn { background:#e74c3c; }
-        .edit-btn:hover { background:#2980b9; }
-        .delete-btn:hover { background:#c0392b; }
-        .table-container { padding:20px; }
-    </style>
+<meta charset="UTF-8">
+<title>用户管理</title>
+<style>
+.page-wrapper{
+    background:#eef2f7;
+    padding:20px;
+    min-height:100vh;
+}
+
+.container-box{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{
+    margin-bottom:20px;
+}
+
+/* 表格样式 */
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+}
+
+th, td{
+    padding:10px;
+    border:1px solid #ddd;
+    text-align:center;
+}
+
+th{
+    background:#f5f7fa;
+}
+
+tr:hover{
+    background:#f1f1f1;
+}
+
+/* 操作按钮 */
+.btn{
+    padding:6px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+}
+
+.btn-edit{
+    background:#409eff;
+    color:white;
+}
+
+.btn-delete{
+    background:#f56c6c;
+    color:white;
+}
+
+.btn-add{
+    background:#27ae60;
+    color:white;
+    padding:8px 16px;
+    display:inline-block;
+    margin-bottom:10px;
+    text-decoration:none;
+    border-radius:6px;
+}
+
+.btn:hover{
+    opacity:0.85;
+}
+
+/* flash 消息 */
+.flash-message{
+    margin-bottom:10px;
+}
+.flash-message li{
+    list-style:none;
+    padding:5px 0;
+}
+</style>
 </head>
 <body>
-<div class="table-container">
-    <h1>用户管理</h1>
-    <a href="{{ url_for('admin.add_user') }}" style="display:inline-block;margin-bottom:10px;padding:6px 12px;background:#27ae60;color:white;border-radius:4px;text-decoration:none;">新增用户</a>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul>
-                {% for category, msg in messages %}
-                    <li style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ msg }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
+<div class="page-wrapper">
+<div class="container-box">
 
-    {% if users %}
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>用户名</th>
-                <th>角色</th>
-                <th>是否管理员</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in users %}
-            <tr>
-                <td>{{ u.id }}</td>
-                <td>{{ u.username }}</td>
-                <td>{{ u.role }}</td>
-                <td>{{ '是' if u.is_admin else '否' }}</td>
-                <td>
-                    <a href="{{ url_for('admin.edit_user', user_id=u.id) }}" class="action-btn edit-btn">编辑</a>
-                    {% if u.username != 'admin' %}
-                    <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="post" style="display:inline;">
-                        <button type="submit" class="action-btn delete-btn" onclick="return confirm('确定删除该用户吗？')">删除</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
+<h2>用户管理</h2>
+
+<a href="{{ url_for('admin.add_user') }}" class="btn-add">新增用户</a>
+
+<!-- flash 消息 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <ul class="flash-message">
+            {% for category, msg in messages %}
+                <li style="color: {% if category=='error' %}red{% else %}green{% endif %};">
+                    {{ msg }}
+                </li>
             {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <p>暂无用户数据。</p>
+        </ul>
     {% endif %}
+{% endwith %}
+
+{% if users %}
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>用户名</th>
+            <th>角色</th>
+            <th>是否管理员</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ u.role }}</td>
+            <td>{{ '是' if u.is_admin else '否' }}</td>
+            <td>
+                <a href="{{ url_for('admin.edit_user', user_id=u.id) }}" class="btn btn-edit">编辑</a>
+                {% if u.username != 'admin' %}
+                <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-delete" onclick="return confirm('确定删除该用户吗？')">删除</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>暂无用户数据。</p>
+{% endif %}
+
+</div>
 </div>
 </body>
 </html>

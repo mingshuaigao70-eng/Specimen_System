@@ -7,7 +7,8 @@ import os
 from ..extensions import db
 from ..models import User, Specimen, SpecimenImage, SpecimenCategory
 from ..utils.password import generate_scrypt_hash
-from ..utils.file_util import allowed_file
+from app.utils.file_util import FileHandler
+import json
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -101,8 +102,7 @@ def delete_user(user_id):
 @admin_required
 def list_categories():
     categories = SpecimenCategory.query.order_by(SpecimenCategory.id.desc()).all()
-    return render_template('admin/categories.html', categories=categories)
-
+    return render_template('admin/admin_category_management.html', categories=categories)
 
 # 新增大类
 @admin_bp.route('/categories/add', methods=['POST'])
@@ -184,63 +184,99 @@ def manage_specimens():
     specimens = Specimen.query.all()
     return render_template('admin/admin_specimen_management.html', specimens=specimens)
 
-# ====================上传标本==================== #
+# ==================== 上传标本 ===================== #
 @admin_bp.route('/upload_specimen', methods=['GET', 'POST'])
-@login_required
-@admin_required
+@login_required  # 确保用户已登录
+@admin_required  # 确保用户具有管理员权限
 def upload_specimen():
     if request.method == 'POST':
-        # 获取表单
-        category_id = request.form.get('category_id')
-        specimen_number = request.form.get('specimen_number')
-        chinese_name = request.form.get('chinese_name')
-        latin_name = request.form.get('latin_name')
-        collector = request.form.get('collector')
-        collect_time_str = request.form.get('collect_time')
-
-        # 转换时间
+        # ==================== 获取表单数据 ==================== #
+        category_id = request.form.get('category_id')  # 标本大类 ID
+        specimen_number = request.form.get('specimen_number')  # 标本编号
+        chinese_name = request.form.get('chinese_name') or None  # 中文名，可为空
+        latin_name = request.form.get('latin_name')  # 拉丁名，必填
+        alias = request.form.get('alias') or None  # 别名，可为空
+        phylum = request.form.get('phylum') or None  # 门，可为空
+        class_name = request.form.get('class_name') or None  # 纲，可为空
+        order_name = request.form.get('order') or None  # 目，可为空
+        family = request.form.get('family') or None  # 科，可为空
+        genus = request.form.get('genus') or None  # 属，可为空
+        species = request.form.get('species') or None  # 种，可为空
+        collector = request.form.get('collector') or None  # 采集人，可为空
+        collect_time_str = request.form.get('collect_time')  # 采集时间字符串
         collect_time = datetime.strptime(collect_time_str, "%Y-%m-%dT%H:%M") if collect_time_str else datetime.utcnow()
+        # 如果表单没有提供采集时间，则默认当前时间
+        collect_location = request.form.get('collect_location') or None  # 采集地点，可为空
 
-        # 保存标本信息
+        # ==================== 经纬度处理 ==================== #
+        longitude = request.form.get('longitude')
+        latitude = request.form.get('latitude')
+        # 将空字符串转换为 None，非空则转 float
+        longitude = float(longitude) if longitude else None
+        latitude = float(latitude) if latitude else None
+
+        # ==================== 鉴定信息 ==================== #
+        appraiser = request.form.get('appraiser') or None  # 鉴定人，可为空
+        appraisal_time_str = request.form.get('appraisal_time')
+        appraisal_time = datetime.strptime(appraisal_time_str, "%Y-%m-%dT%H:%M") if appraisal_time_str else None
+        # 如果表单没有提供鉴定时间，则为 None
+
+        # ==================== 其他信息（JSON 或文本） ==================== #
+        other_info = request.form.get('other_info')
+        # 尝试解析 JSON，如果失败则按文本存储
+        try:
+            other_info_json = json.loads(other_info) if other_info else None
+        except Exception:
+            other_info_json = other_info or None
+
+        # ==================== 创建 Specimen 实例 ==================== #
         specimen = Specimen(
-            category_id=int(category_id),
-            specimen_number=specimen_number,
-            chinese_name=chinese_name,
-            latin_name=latin_name,
-            collector=collector,
-            collect_time=collect_time,
-            created_by=current_user.username,
-            updated_by=current_user.username,
+            category_id=int(category_id),  # 大类 ID
+            specimen_number=specimen_number,  # 标本编号
+            chinese_name=chinese_name,  # 中文名
+            latin_name=latin_name,  # 拉丁名
+            alias=alias,  # 别名
+            phylum=phylum,  # 门
+            class_name=class_name,  # 纲
+            order_name=order_name,  # 目
+            family=family,  # 科
+            genus=genus,  # 属
+            species=species,  # 种
+            collector=collector,  # 采集人
+            collect_time=collect_time,  # 采集时间
+            collect_location=collect_location,  # 采集地点
+            longitude=longitude,  # 经度
+            latitude=latitude,  # 纬度
+            appraiser=appraiser,  # 鉴定人
+            appraisal_time=appraisal_time,  # 鉴定时间
+            other_info=other_info_json,  # 其他信息
+            created_by=current_user.username,  # 创建人
+            updated_by=current_user.username,  # 更新人
+            # ⚠️ 不要手动传 created_at/updated_at，SQLAlchemy 会自动填充
         )
         db.session.add(specimen)
-        db.session.commit()  # 提交生成 ID
+        db.session.commit()  # 提交生成 ID，方便图片关联
 
-        # 处理多张图片
-        images = request.files.getlist('images')
-        upload_folder = current_app.config['UPLOAD_FOLDER_IMAGES']
-
+        # ==================== 处理多张图片 ==================== #
+        images = request.files.getlist('images')  # 获取上传的文件列表
         for index, image in enumerate(images):
-            if image and allowed_file(image.filename):
-                ext = image.filename.rsplit('.', 1)[1].lower()
-                filename = f"{specimen.id}_{index+1}.{ext}"
-                filepath = os.path.join(upload_folder, filename)
-                relative_path = os.path.join('images', filename)
-
-                # 保存文件
-                image.save(filepath)
-
-                # 保存数据库
+            # 检查文件类型和大小
+            if FileHandler.check_file(image):
+                # 自动生成唯一文件名并保存到指定文件夹
+                relative_path = FileHandler.save_file(image, folder_key='UPLOAD_FOLDER_IMAGES')
+                # 保存图片信息到数据库
                 img = SpecimenImage(
-                    specimen_id=specimen.id,
-                    image_path=relative_path,
-                    sort_order=index+1
+                    specimen_id=specimen.id,  # 关联标本 ID
+                    image_path=relative_path,  # 文件相对路径
+                    sort_order=index + 1  # 排序号
                 )
                 db.session.add(img)
 
-        db.session.commit()
-        flash("标本上传成功！", 'success')
-        return redirect(url_for('admin.manage_specimens'))
+        db.session.commit()  # 提交所有图片记录
 
-    # GET 请求显示上传页面
-    categories = SpecimenCategory.query.all()
+        flash("标本上传成功！", 'success')
+        return redirect(url_for('admin.upload_specimen'))
+
+    # ==================== GET 请求显示上传页面 ==================== #
+    categories = SpecimenCategory.query.all()  # 获取所有标本大类
     return render_template('admin/upload_specimen.html', categories=categories)
