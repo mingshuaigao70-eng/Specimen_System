@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>电子标本馆</title>
+<style>
+body { font-family: "微软雅黑", sans-serif; margin: 0; background: #f5f5f5; }
+
+/* ---------- Header ---------- */
+header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #2c3e50;
+    color: white;
+    padding: 10px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+.header-left { display: flex; align-items: center; }
+.unit-logo { height: 50px; margin-right: 15px; }
+.site-title { font-size: 18px; font-weight: 500; }
+
+.header-right { display: flex; align-items: center; gap: 15px; }
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.1);
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+.user-icon { width: 32px; height: 32px; border-radius: 50%; }
+.header-right a { color: white; text-decoration: none; font-weight: 500; }
+.header-right a:hover { text-decoration: underline; }
+
+/* ---------- Banner ---------- */
+.banner {
+    margin-top: 70px; /* header高度 + 小间距 */
+    position: relative;
+    width: 100%;
+    height: 220px; /* 横幅高度固定 */
+    background: url("{{ url_for('static', filename='images/public/huanglanjiaojie.png') }}") center center / cover no-repeat;
+}
+
+/* ---------- 搜索框 ---------- */
+.search-box {
+    position: absolute;
+    top: 50%; /* 可以根据需要微调，比如改成40%靠上 */
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.search-box input[type="text"] {
+    width: 300px;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 25px;
+    border: none;
+}
+.search-box button {
+    padding: 8px 16px;
+    font-size: 16px;
+    border-radius: 25px;
+    border: none;
+    background-color: #27ae60;
+    color: white;
+    margin-left: 5px;
+    cursor: pointer;
+}
+.search-box button:hover { opacity: 0.85; }
+
+/* ---------- 标本大类 ---------- */
+.categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px 0 50px 0;
+}
+.category-item {
+    width: 320px;
+    height: 200px;
+    background: #409eff;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.category-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <div class="header-left">
+        <img src="{{ url_for('static', filename='images/public/danwei_logo.png') }}" alt="单位图标" class="unit-logo">
+        <div class="site-title">黄河口水质水生态监测中心电子标本馆</div>
+    </div>
+
+    <div class="header-right">
+        <div class="user-info">
+            <img src="{{ url_for('static', filename='images/public/user_icon.png') }}" alt="用户图标" class="user-icon">
+            <span>{{ current_user.username }}</span>
+        </div>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin.dashboard') }}">配置平台</a>
+        {% endif %}
+        <a href="{{ url_for('auth.logout') }}">退出登录</a>
+    </div>
+</header>
+
+<!-- Banner -->
+<div class="banner">
+    <div class="search-box">
+        <input type="text" placeholder="请输入标本关键字...">
+        <button>搜索</button>
+    </div>
+</div>
+
+<!-- 标本大类 -->
+<div class="categories">
+    {% for cat in categories %}
+        <div class="category-item">{{ cat.name }}</div>
+    {% endfor %}
+</div>
+
+</body>
+</html>

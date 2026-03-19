@@ -6,3 +6,4 @@ qrcode
 pillow
 werkzeug
 sqlalchemy-utils
+pytz

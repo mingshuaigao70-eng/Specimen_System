@@ -3,6 +3,7 @@ from .extensions import db, login_manager
 from .models import User
 from config import Config
 from .utils.password import generate_scrypt_hash
+from .utils.time_utils import format_time  # 导入模板过滤器函数
 import os
 
 @login_manager.user_loader
@@ -31,10 +32,14 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
 
+    # 注册时间模板过滤器
+    @app.template_filter('datetime')
+    def datetime_filter(value):
+        return format_time(value)
+
     # 创建默认超级管理员
     with app.app_context():
         db.create_all()  # 建表
-        # 创建默认超级管理员
         if not User.query.filter_by(role='superadmin').first():
             default_admin = User(
                 username='admin',

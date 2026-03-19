@@ -1,7 +1,7 @@
 from .extensions import db
 from flask_login import UserMixin
 from datetime import datetime
-
+from app.utils.time_utils import now
 class User(db.Model, UserMixin):
     __tablename__ = 'user'  # 确保表名和数据库一致
 
@@ -47,8 +47,8 @@ class Specimen(db.Model):
 
     other_info = db.Column(db.JSON)
 
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=now, onupdate=now)
 
     images = db.relationship('SpecimenImage', cascade='all, delete-orphan', back_populates='specimen')
 
@@ -66,7 +66,7 @@ class SpecimenImage(db.Model):
     )
     sort_order = db.Column(db.Integer, default=0, comment='图片顺序')  # ← 新加字段
     image_path = db.Column(db.String(255), nullable=False, comment='图片路径')
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, comment='上传时间')
+    created_at = db.Column(db.DateTime, nullable=False, default=now, comment='上传时间')
 
     specimen = db.relationship('Specimen', back_populates='images')
 class SpecimenCategory(db.Model):
@@ -76,12 +76,12 @@ class SpecimenCategory(db.Model):
     description = db.Column(db.Text, comment='说明（可选）')
     created_by = db.Column(db.String(50), comment='创建人')
     updated_by = db.Column(db.String(50), comment='修改人')
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, comment='创建时间')
+    created_at = db.Column(db.DateTime, nullable=False, default=now, comment='创建时间')
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=now,
+        onupdate=now,
         comment='最后更新时间'
     )
     def __repr__(self):

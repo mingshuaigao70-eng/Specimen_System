@@ -85,8 +85,8 @@ textarea.form-control { resize: vertical; }
             <td class="description">{{ cat.description or '-' }}</td>
             <td class="text-center">{{ cat.created_by or '-' }}</td>
             <td class="text-center">{{ cat.updated_by or '-' }}</td>
-            <td class="text-center">{{ cat.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-            <td class="text-center">{{ cat.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="text-center">{{ cat.created_at | datetime }}</td>
+            <td class="text-center">{{ cat.updated_at | datetime }}</td>
             <td class="text-center">
                 <!-- 编辑按钮 -->
                 <button type="button" class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ cat.id }}">编辑</button>
