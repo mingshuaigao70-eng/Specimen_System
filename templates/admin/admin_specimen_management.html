@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>标本信息维护</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --primary: #4f8ef7;
+    --primary-light: #ecf3fd;
+    --danger: #f56c6c;
+    --danger-light: #fef0f0;
+    --text-1: #303133;
+    --text-2: #606266;
+    --text-3: #909399;
+    --text-4: #c0c4cc;
+    --border: #e8eaed;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.10);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --transition: 0.2s ease;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    font-size: 15px;
+    color: var(--text-1);
+    -webkit-font-smoothing: antialiased;
+}
+
+.page-wrapper {
+    display: flex;
+    height: 100vh;
+    background: var(--bg);
+}
+
+/* ========== 左侧分类列表 ========== */
+.sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 20px 18px 14px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: 0.5px;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    border-left: 3px solid transparent;
+    transition: all var(--transition);
+    position: relative;
+}
+
+.category-item:hover {
+    background: #f5f7fa;
+    color: var(--primary);
+    border-left-color: #d0ddf4;
+}
+
+.category-item.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-left-color: var(--primary);
+    font-weight: 600;
+}
+
+.category-count {
+    font-size: 13px;
+    font-weight: 500;
+    background: #f0f2f5;
+    color: var(--text-3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 26px;
+    text-align: center;
+    transition: all var(--transition);
+}
+
+.category-item.active .category-count {
+    background: #d4e3fc;
+    color: var(--primary);
+}
+
+/* ========== 右侧主区域 ========== */
+.main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---- 顶栏 ---- */
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+}
+
+.top-bar h5 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-1);
+    white-space: nowrap;
+    letter-spacing: -0.3px;
+}
+
+.search-form {
+    display: flex;
+    gap: 0;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+}
+
+.search-form:focus-within {
+    box-shadow: 0 0 0 3px rgba(79,142,247,.15);
+}
+
+.search-form input {
+    width: 240px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    font-size: 15px;
+    background: var(--card);
+    color: var(--text-1);
+    outline: none;
+    transition: border var(--transition);
+}
+
+.search-form input::placeholder { color: var(--text-4); }
+
+.search-form button {
+    padding: 8px 16px;
+    border: 1px solid var(--primary);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: var(--primary);
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.search-form button:hover { background: #3d7de6; }
+
+/* ---- Flash 消息 ---- */
+.flash-messages { padding: 0 24px; }
+.flash-messages .alert {
+    margin: 12px 0 0 0;
+    padding: 10px 16px;
+    font-size: 15px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-weight: 500;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.alert-success { background: #e8f5e9; color: #2e7d32; }
+.alert-error, .alert-danger { background: #fef0f0; color: #c62828; }
+
+/* ---- 内容滚动区 ---- */
+.content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+}
+
+/* ========== 表格 ========== */
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.table thead th {
+    background: #f8f9fb;
+    color: #1a3a4a;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px 14px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    text-align: center;
+}
+
+.table tbody td {
+    padding: 14px;
+    font-size: 15px;
+    color: var(--text-1);
+    border-bottom: 1px solid #f0f2f5;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table tbody tr {
+    transition: background var(--transition);
+}
+
+.table tbody tr:hover {
+    background: #f8f9fb;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 序号列窄一些 */
+.table thead th:first-child,
+.table tbody td:first-child {
+    width: 60px;
+    color: var(--text-3);
+    font-weight: 500;
+}
+
+/* 拉丁名列斜体 */
+.table td.latin-col {
+    font-style: italic;
+    color: var(--text-2);
+}
+
+/* ---- 缩略图 ---- */
+.thumbnail {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    transition: transform var(--transition);
+    cursor: pointer;
+}
+
+.thumbnail:hover {
+    transform: scale(2.2);
+    box-shadow: var(--shadow-lg);
+    z-index: 10;
+    position: relative;
+}
+
+.thumbnail-placeholder {
+    width: 56px;
+    height: 56px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-4);
+    font-size: 12px;
+    border: 1px dashed var(--border);
+}
+
+/* ---- 操作按钮 ---- */
+.btn-edit-sm, .btn-delete-sm {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.btn-edit-sm {
+    background: #ecf3fd;
+    color: var(--primary);
+}
+
+.btn-edit-sm:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-delete-sm {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.btn-delete-sm:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.empty-hint {
+    text-align: center;
+    color: var(--text-3);
+    font-size: 16px;
+    margin-top: 100px;
+    background: var(--card);
+    padding: 60px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* ========== 编辑模态框 ========== */
+.modal-xl { max-width: 960px; }
+
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #f8f9fb;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-1);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+}
+
+.edit-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 18px;
+}
+
+.edit-form-grid .form-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-form-grid label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: var(--text-2);
+    letter-spacing: 0.2px;
+}
+
+.edit-form-grid input,
+.edit-form-grid textarea {
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 15px;
+    color: var(--text-1);
+    background: #fafbfc;
+    transition: all var(--transition);
+    outline: none;
+    font-family: inherit;
+}
+
+.edit-form-grid input:focus,
+.edit-form-grid textarea:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(79,142,247,.1);
+}
+
+.edit-form-grid .full-row {
+    grid-column: 1 / -1;
+}
+
+/* ---- 编辑模态框中的图片 ---- */
+.edit-images-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.edit-images-container .image-item {
+    position: relative;
+    display: inline-block;
+}
+
+.edit-images-container .image-item img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition);
+}
+
+.edit-images-container .image-item img:hover {
+    transform: scale(1.05);
+}
+
+.btn-delete-img {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    width: 22px;
+    height: 22px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 22px;
+    text-align: center;
+    padding: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    transition: all var(--transition);
+}
+
+.btn-delete-img:hover {
+    background: #e04848;
+    transform: scale(1.15);
+}
+
+.preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.preview-container img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ---- 删除确认 Modal ---- */
+#deleteConfirmModal .modal-dialog {
+    max-width: 420px;
+}
+
+#deleteConfirmModal .modal-content {
+    border-radius: 12px;
+}
+
+#deleteConfirmModal .modal-header {
+    padding: 18px 24px;
+}
+
+#deleteConfirmModal .modal-body {
+    padding: 20px 24px;
+    font-size: 16px;
+    color: var(--text-2);
+}
+
+#deleteConfirmModal .modal-footer {
+    padding: 14px 24px;
+}
+
+#deleteConfirmModal .modal-footer .btn {
+    font-size: 15px;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: var(--radius-sm);
+}
+
+	/* ===== Responsive ===== */
+	@media (max-width: 768px) {
+	    .page-wrapper { flex-direction: column; }
+	    .sidebar {
+	        width: 100%;
+	        min-width: 0;
+	        flex-direction: row;
+	        flex-wrap: wrap;
+	        overflow-x: auto;
+	        padding: 10px 12px;
+	        gap: 4px;
+	        border-right: none;
+	        border-bottom: 1px solid var(--border);
+	    }
+	    .sidebar-header { display: none; }
+	    .category-item {
+	        font-size: 13px;
+	        padding: 6px 12px;
+	        border-left: none;
+	        border-radius: 16px;
+	        white-space: nowrap;
+	        border: 1px solid var(--border);
+	    }
+	    .category-item.active {
+	        border-left: none;
+	        border-color: var(--primary);
+	    }
+	    .category-count { display: none; }
+	    .top-bar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+	    .top-bar h5 { font-size: 16px; }
+	    .search-form input { width: 150px; font-size: 13px; }
+	    .search-form button { font-size: 13px; padding: 8px 12px; }
+	    .content-scroll { padding: 12px 14px; }
+	    .edit-form-grid { grid-template-columns: 1fr; }
+	    .modal-xl { max-width: 96vw; }
+	    /* Table card view on small screens */
+	    .table thead { display: none; }
+	    .table tbody tr {
+	        display: block;
+	        margin-bottom: 12px;
+	        border: 1px solid var(--border);
+	        border-radius: var(--radius);
+	        padding: 12px;
+	        background: var(--card);
+	    }
+	    .table tbody td {
+	        display: flex;
+	        justify-content: space-between;
+	        align-items: center;
+	        padding: 6px 0;
+	        border-bottom: 1px solid #f0f2f5;
+	        text-align: right;
+	        font-size: 14px;
+	    }
+	    .table tbody td:last-child { border-bottom: none; }
+	    .table tbody td::before {
+	        content: attr(data-label);
+	        font-weight: 700;
+	        color: #1a3a4a;
+	        font-size: 13px;
+	        white-space: nowrap;
+	    }
+	}
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<!-- ====== 左侧分类列表 ====== -->
+<div class="sidebar">
+    <div class="sidebar-header">标本分类</div>
+    <a href="{{ url_for('admin.manage_specimens') }}"
+       class="category-item {{ 'active' if not current_category_id else '' }}">
+        全部标本
+        <span class="category-count">{{ specimens|length if not current_category_id else '' }}</span>
+    </a>
+    {% for cat in categories %}
+    <a href="{{ url_for('admin.manage_specimens', category_id=cat.id) }}"
+       class="category-item {{ 'active' if current_category_id == cat.id else '' }}">
+        {{ cat.name }}
+        <span class="category-count">{{ cat.specimens|length }}</span>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- ====== 右侧主区域 ====== -->
+<div class="main-area">
+
+    <div class="top-bar">
+        <h5>标本信息维护</h5>
+        <form class="search-form" action="{{ url_for('admin.manage_specimens') }}" method="get">
+            {% if current_category_id %}
+            <input type="hidden" name="category_id" value="{{ current_category_id }}">
+            {% endif %}
+            <input type="text" name="q" placeholder="标本号/中文名（至少2个字符）..." value="{{ search_query }}" minlength="2">
+            <button type="submit">搜索</button>
+        </form>
+    </div>
+
+    <div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    </div>
+
+    <div class="content-scroll">
+    {% if specimens %}
+    <div style="overflow-x: auto;">
+<table class="table">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>标本号</th>
+                <th>拉丁名</th>
+                <th>属</th>
+                <th>种</th>
+                <th>缩略图</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in specimens %}
+            <tr>
+                <td data-label="序号">{{ loop.index }}</td>
+                <td data-label="标本号"><strong>{{ s.specimen_number }}</strong></td>
+                <td class="latin-col" data-label="拉丁名">{{ s.latin_name or '-' }}</td>
+                <td data-label="属">{{ s.genus or '-' }}</td>
+                <td data-label="种">{{ s.species or '-' }}</td>
+                <td data-label="缩略图">
+                    {% if s.images %}
+                    <img class="thumbnail" src="{{ url_for('static', filename=s.images[0].image_path) }}" alt="{{ s.chinese_name or s.latin_name or '标本' }}">
+                    {% else %}
+                    <span class="thumbnail-placeholder">无图</span>
+                    {% endif %}
+                </td>
+                <td data-label="操作">
+                    <button type="button" class="btn btn-edit-sm btn-sm" onclick="showEditModal({{ s.id }})">编辑</button>
+                    <button type="button" class="btn btn-delete-sm btn-sm btn-delete-specimen" data-specimen-id="{{ s.id }}" data-specimen-name="{{ s.chinese_name or s.latin_name or s.specimen_number }}">删除</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% if pagination and pagination.pages > 1 %}
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; padding:20px 0; font-size:14px; color:#606266;">
+        {% set base_params = '' %}
+        {% if current_category_id %}
+            {% set base_params = base_params ~ '&category_id=' ~ current_category_id %}
+        {% endif %}
+        {% if search_query %}
+            {% set base_params = base_params ~ '&q=' ~ search_query %}
+        {% endif %}
+
+        {% if pagination.has_prev %}
+        <a href="?page={{ pagination.prev_num }}{{ base_params }}"
+           style="padding:6px 14px; border:1px solid #dcdfe6; border-radius:6px;
+                  text-decoration:none; color:#606266;">上一页</a>
+        {% else %}
+        <span style="padding:6px 14px; border:1px solid #ebeef5; border-radius:6px; color:#c0c4cc;">上一页</span>
+        {% endif %}
+
+        {% for p in range(1, pagination.pages + 1) %}
+            {% if p == pagination.page %}
+            <span style="padding:6px 14px; background:#4f8ef7; color:#fff;
+                         border-radius:6px; font-weight:600;">{{ p }}</span>
+            {% elif p <= 2 or p > pagination.pages - 2 or (p - pagination.page)|abs <= 1 %}
+            <a href="?page={{ p }}{{ base_params }}"
+               style="padding:6px 14px; border:1px solid #dcdfe6; border-radius:6px;
+                      text-decoration:none; color:#606266;">{{ p }}</a>
+            {% elif p == 3 or p == pagination.pages - 2 %}
+            <span style="color:#c0c4cc;">...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="?page={{ pagination.next_num }}{{ base_params }}"
+           style="padding:6px 14px; border:1px solid #dcdfe6; border-radius:6px;
+                  text-decoration:none; color:#606266;">下一页</a>
+        {% else %}
+        <span style="padding:6px 14px; border:1px solid #ebeef5; border-radius:6px; color:#c0c4cc;">下一页</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="empty-hint">暂无标本数据</p>
+    {% endif %}
+    </div>
+
+</div><!-- /main-area -->
+</div><!-- /page-wrapper -->
+
+<!-- ====== 删除确认 Modal ====== -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">确认删除</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="deleteModalBody">
+        <p>确定删除该标本吗？此操作不可恢复！</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确定删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 编辑标本 Modal ====== -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <form id="editForm" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="category_id" id="editCategoryId">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">编辑标本</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="edit-form-grid">
+            <div class="form-item">
+                <label>标本编号*</label>
+                <input type="text" name="specimen_number" id="editSpecimenNumber" required>
+            </div>
+            <div class="form-item">
+                <label>中文名</label>
+                <input type="text" name="chinese_name" id="editChineseName">
+            </div>
+            <div class="form-item">
+                <label>拉丁名*</label>
+                <input type="text" name="latin_name" id="editLatinName" required>
+            </div>
+            <div class="form-item">
+                <label>别名</label>
+                <input type="text" name="alias" id="editAlias">
+            </div>
+            <div class="form-item">
+                <label>门*</label>
+                <input type="text" name="phylum" id="editPhylum" required>
+            </div>
+            <div class="form-item">
+                <label>纲*</label>
+                <input type="text" name="class_name" id="editClassName" required>
+            </div>
+            <div class="form-item">
+                <label>目*</label>
+                <input type="text" name="order" id="editOrder" required>
+            </div>
+            <div class="form-item">
+                <label>科*</label>
+                <input type="text" name="family" id="editFamily" required>
+            </div>
+            <div class="form-item">
+                <label>属*</label>
+                <input type="text" name="genus" id="editGenus" required>
+            </div>
+            <div class="form-item">
+                <label>种</label>
+                <input type="text" name="species" id="editSpecies">
+            </div>
+            <div class="form-item">
+                <label>采集人</label>
+                <input type="text" name="collector" id="editCollector">
+            </div>
+            <div class="form-item">
+                <label>采集时间*</label>
+                <input type="date" name="collect_time" id="editCollectTime" required>
+            </div>
+            <div class="form-item">
+                <label>采集地点</label>
+                <input type="text" name="collect_location" id="editCollectLocation">
+            </div>
+            <div class="form-item">
+                <label>经度</label>
+                <input type="number" step="0.0000001" name="longitude" id="editLongitude">
+            </div>
+            <div class="form-item">
+                <label>纬度</label>
+                <input type="number" step="0.000001" name="latitude" id="editLatitude">
+            </div>
+            <div class="form-item">
+                <label>鉴定人</label>
+                <input type="text" name="appraiser" id="editAppraiser">
+            </div>
+            <div class="form-item">
+                <label>鉴定时间</label>
+                <input type="date" name="appraisal_time" id="editAppraisalTime">
+            </div>
+            <div class="form-item full-row">
+                <label>其他信息</label>
+                <textarea name="other_info" id="editOtherInfo" rows="2"></textarea>
+            </div>
+            <!-- 已有图片 -->
+            <div class="form-item full-row" id="existingImagesRow" style="display:none;">
+                <label>已有图片（点击红色按钮移除）</label>
+                <div class="edit-images-container" id="existingImages"></div>
+            </div>
+            <input type="hidden" name="delete_image_ids" id="deleteImageIds" value="">
+            <!-- 新增图片 -->
+            <div class="form-item full-row">
+                <label>新增图片（单张≤1MB）</label>
+                <input type="file" name="images" id="newImages" multiple accept="image/*">
+                <div id="imageError" style="color:#f56c6c;font-size:14px;"></div>
+                <div class="preview-container" id="previewContainer"></div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+        <button type="submit" class="btn btn-primary">保存修改</button>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>
+
+<!-- ====== 标本数据 JSON ====== -->
+<script>
+var specimenData = {{ specimens_json|tojson }};
+</script>
+
+<script>
+// Flash 消息自动消失
+setTimeout(function() {
+    document.querySelectorAll('.flash-messages .alert').forEach(function(el) { el.remove(); });
+}, 3000);
+</script>
+
+<!-- Hidden CSRF form for delete -->
+<form id="csrfDeleteSpecimenForm" method="POST" style="display:none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+
+<script>
+// ====== 删除 Modal ======
+var deleteFormAction = '';
+
+function showDeleteModal(id, name) {
+    deleteFormAction = '{{ url_for("admin.delete_specimen", id=0) }}'.replace('0', id);
+    var nameText = document.createTextNode(name);
+    var strong = document.createElement('strong');
+    strong.appendChild(nameText);
+    var p = document.createElement('p');
+    p.appendChild(document.createTextNode('确定删除标本 '));
+    p.appendChild(strong);
+    p.appendChild(document.createTextNode(' 吗？此操作不可恢复！'));
+    document.getElementById('deleteModalBody').innerHTML = '';
+    document.getElementById('deleteModalBody').appendChild(p);
+    new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+}
+
+// 绑定删除按钮事件（通过 data-* 属性，避免 XSS）
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-delete-specimen');
+    if (btn) {
+        var id = btn.getAttribute('data-specimen-id');
+        var name = btn.getAttribute('data-specimen-name');
+        if (id && name) {
+            showDeleteModal(id, name);
+        }
+    }
+});
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (deleteFormAction) {
+        var form = document.getElementById('csrfDeleteSpecimenForm');
+        form.action = deleteFormAction;
+        form.submit();
+    }
+});
+
+// ====== 编辑 Modal ======
+var editModalInstance = null;
+var deletedImageIds = [];
+
+function getEditModal() {
+    if (!editModalInstance) {
+        editModalInstance = new bootstrap.Modal(document.getElementById('editModal'));
+    }
+    return editModalInstance;
+}
+
+function showEditModal(id) {
+    var data = specimenData[id];
+    if (!data) return;
+
+    // 重置删除图片列表
+    deletedImageIds = [];
+    document.getElementById('deleteImageIds').value = '';
+
+    // 设置表单 action
+    var editUrl = '{{ url_for("admin.edit_specimen", id=0) }}'.replace('0', id);
+    document.getElementById('editForm').action = editUrl;
+
+    // 填充字段
+    document.getElementById('editCategoryId').value = data.category_id;
+    document.getElementById('editSpecimenNumber').value = data.specimen_number;
+    document.getElementById('editChineseName').value = data.chinese_name || '';
+    document.getElementById('editLatinName').value = data.latin_name || '';
+    document.getElementById('editAlias').value = data.alias || '';
+    document.getElementById('editPhylum').value = data.phylum || '';
+    document.getElementById('editClassName').value = data.class_name || '';
+    document.getElementById('editOrder').value = data.order_name || '';
+    document.getElementById('editFamily').value = data.family || '';
+    document.getElementById('editGenus').value = data.genus || '';
+    document.getElementById('editSpecies').value = data.species || '';
+    document.getElementById('editCollector').value = data.collector || '';
+    document.getElementById('editCollectTime').value = data.collect_time ? data.collect_time.split('T')[0] : '';
+    document.getElementById('editCollectLocation').value = data.collect_location || '';
+    document.getElementById('editLongitude').value = data.longitude !== null ? data.longitude : '';
+    document.getElementById('editLatitude').value = data.latitude !== null ? data.latitude : '';
+    document.getElementById('editAppraiser').value = data.appraiser || '';
+    document.getElementById('editAppraisalTime').value = data.appraisal_time ? data.appraisal_time.split('T')[0] : '';
+
+    // 其他信息：如果 JSON 对象，转为格式化字符串
+    if (data.other_info) {
+        document.getElementById('editOtherInfo').value = typeof data.other_info === 'string'
+            ? data.other_info
+            : JSON.stringify(data.other_info);
+    } else {
+        document.getElementById('editOtherInfo').value = '';
+    }
+
+    // 已有图片
+    var existingRow = document.getElementById('existingImagesRow');
+    var existingContainer = document.getElementById('existingImages');
+    if (data.images && data.images.length > 0) {
+        existingRow.style.display = '';
+        var html = '';
+        data.images.forEach(function(img) {
+            html += '<div class="image-item" data-image-id="' + img.id + '">'
+                  + '<img src="' + img.url + '" alt="标本图片">'
+                  + '<button type="button" class="btn-delete-img" onclick="removeImage(this)" title="删除此图片">&times;</button>'
+                  + '</div>';
+        });
+        existingContainer.innerHTML = html;  // img.id 为整数, img.url 来自 url_for — XSS 安全
+    } else {
+        existingRow.style.display = 'none';
+        existingContainer.innerHTML = '';
+    }
+
+    // 清空新图片上传
+    document.getElementById('newImages').value = '';
+    document.getElementById('previewContainer').innerHTML = '';
+    document.getElementById('imageError').innerText = '';
+
+    getEditModal().show();
+}
+
+// 删除已有图片
+function removeImage(btn) {
+    var item = btn.closest('.image-item');
+    var imageId = item.getAttribute('data-image-id');
+    deletedImageIds.push(imageId);
+    document.getElementById('deleteImageIds').value = deletedImageIds.join(',');
+    item.remove();
+
+    // 如果所有图片都被删了，隐藏整行
+    var container = document.getElementById('existingImages');
+    if (container.querySelectorAll('.image-item').length === 0) {
+        document.getElementById('existingImagesRow').style.display = 'none';
+    }
+}
+
+// 新图片预览
+document.getElementById('newImages').addEventListener('change', function() {
+    var previewContainer = document.getElementById('previewContainer');
+    var errorEl = document.getElementById('imageError');
+    previewContainer.innerHTML = '';
+    errorEl.innerText = '';
+    var files = this.files;
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        if (!file.type.startsWith('image/')) {
+            errorEl.innerText = '只能上传图片文件';
+            this.value = '';
+            return;
+        }
+        if (file.size > 1024 * 1024) {
+            errorEl.innerText = '图片不能超过1MB';
+            this.value = '';
+            return;
+        }
+        (function(file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = document.createElement('img');
+                img.src = e.target.result;
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        })(file);
+    }
+});
+</script>
+
+</body>
+</html>

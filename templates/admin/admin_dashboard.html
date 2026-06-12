@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后台管理平台</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+:root {
+  --sidebar-w: 230px;
+  --header-h: 60px;
+  --primary: #2c5f7c;
+  --primary-dark: #1a3a4a;
+  --accent: #27ae60;
+  --sidebar-bg: #2c3e50;
+  --sidebar-hover: #3d5266;
+  --sidebar-active: #1abc9c;
+  --text-light: #b0bec5;
+  --bg: #edf1f5;
+  --card-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: #303133;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ========== Header ========== */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: linear-gradient(135deg, #2c5f7c 0%, #3d7ea6 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.18);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+
+.header-left .logo-icon {
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 15px;
+}
+
+.header-right a {
+  color: rgba(255,255,255,.85);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all .2s;
+}
+
+.header-right a:hover {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255,255,255,.1);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.user-badge .avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ========== Layout ========== */
+.main-layout {
+  display: flex;
+  height: calc(100vh - var(--header-h));
+  margin-top: var(--header-h);
+}
+
+/* ========== Sidebar ========== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  color: #fff;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 16px;
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  padding: 12px 22px 6px;
+  font-size: 14px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #607d8b;
+  font-weight: 600;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px;
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all .2s;
+  border-left: 3px solid transparent;
+  margin: 1px 0;
+}
+
+.sidebar a:hover {
+  background: var(--sidebar-hover);
+  color: #fff;
+  border-left-color: rgba(26, 188, 156, .5);
+}
+
+.sidebar a.active {
+  background: var(--sidebar-hover);
+  color: #fff;
+  border-left-color: var(--sidebar-active);
+  font-weight: 600;
+}
+
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  opacity: .7;
+}
+
+.sidebar a.active .menu-icon,
+.sidebar a:hover .menu-icon {
+  opacity: 1;
+}
+
+/* ========== Content ========== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.subnav {
+  background: #fff;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e8ecf1;
+  display: none;
+  gap: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+
+.subnav a {
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: #606266;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all .2s;
+}
+
+.subnav a:hover {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.subnav a.active {
+  background: #409eff;
+  color: #fff;
+}
+
+.content-frame {
+  flex: 1;
+  background: #fff;
+}
+
+.content-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ============================================================
+   Responsive — Mobile
+   ============================================================ */
+@media (max-width: 768px) {
+    .header {
+        padding: 0 16px;
+    }
+    .header-left {
+        font-size: 15px;
+    }
+    .header-right {
+        gap: 8px;
+        font-size: 13px;
+    }
+    .header-right a {
+        padding: 4px 8px;
+        font-size: 13px;
+    }
+    .user-badge {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+    .user-badge .avatar {
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+    }
+
+    /* Hamburger toggle */
+    .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,.1);
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 20px;
+        color: #fff;
+        flex-shrink: 0;
+        transition: all .2s;
+    }
+    .sidebar-toggle:hover {
+        background: rgba(255,255,255,.2);
+    }
+
+    /* Sidebar — off-canvas */
+    .sidebar {
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        bottom: 0;
+        z-index: 99;
+        width: 260px;
+        max-width: 80vw;
+        transform: translateX(-100%);
+        transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+        box-shadow: 4px 0 24px rgba(0,0,0,.3);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Sidebar overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        top: var(--header-h);
+        z-index: 98;
+        background: rgba(0,0,0,.45);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    /* Content */
+    .main-content {
+        width: 100%;
+    }
+    .subnav {
+        padding: 8px 12px;
+        gap: 4px;
+        overflow-x: auto;
+    }
+    .subnav a {
+        font-size: 13px;
+        padding: 5px 12px;
+        white-space: nowrap;
+    }
+}
+
+@media (min-width: 769px) {
+    .sidebar-toggle {
+        display: none;
+    }
+    .sidebar-overlay {
+        display: none;
+    }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+  <div class="header-left">
+    <div class="logo-icon">&#9874;</div>
+    <span>标本馆后台管理</span>
+  </div>
+  <div class="header-right">
+    <div class="user-badge">
+      <div class="avatar">{{ current_user.username[0].upper() }}</div>
+      <span>{{ current_user.username }}</span>
+    </div>
+    <a href="{{ url_for('main.index') }}">&#8592; 返回前台</a>
+    <a href="{{ url_for('auth.logout') }}">退出登录</a>
+  </div>
+</header>
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="main-layout">
+
+  <!-- 左侧导航 -->
+  <nav class="sidebar">
+    <div class="sidebar-section">功能菜单</div>
+
+    {% if current_user.role == 'superadmin' %}
+    <a href="javascript:void(0);" id="menu_users">
+      <span class="menu-icon">&#128100;</span> 用户管理
+    </a>
+    {% endif %}
+
+    {% if current_user.role in ['superadmin','admin'] %}
+    <a href="javascript:void(0);" id="menu_specimen">
+      <span class="menu-icon">&#128203;</span> 标本管理
+    </a>
+    <a href="javascript:void(0);" id="menu_upload">
+      <span class="menu-icon">&#8682;</span> 上传标本
+    </a>
+    {% if current_user.role == 'superadmin' %}
+    <a href="javascript:void(0);" id="menu_config">
+      <span class="menu-icon">&#9881;</span> 页面配置
+    </a>
+    {% endif %}
+    {% endif %}
+  </nav>
+
+  <!-- 主体区域 -->
+  <div class="main-content">
+
+    <!-- 二级导航 -->
+    <div id="specimen_subnav" class="subnav">
+      <a href="javascript:void(0);" id="sub_categories">标本大类管理</a>
+      <a href="javascript:void(0);" id="sub_specimens">标本信息维护</a>
+    </div>
+
+    <div id="upload_subnav" class="subnav">
+      <a href="javascript:void(0);" id="sub_single_upload">单个上传</a>
+      <a href="javascript:void(0);" id="sub_batch_upload">批量上传</a>
+    </div>
+
+    <div class="content-frame">
+      <iframe id="content_frame" src="" title="内容区域"></iframe>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const iframe = document.getElementById("content_frame");
+
+function switchModule(module) {
+  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+  document.getElementById("menu_" + module).classList.add("active");
+
+  document.querySelectorAll(".subnav").forEach(div => {
+    div.style.display = "none";
+    div.querySelectorAll("a").forEach(a => a.classList.remove("active"));
+  });
+
+  if (module === "users") {
+    iframe.src = "{{ url_for('admin.manage_users') }}";
+  } else if (module === "specimen") {
+    var subnav = document.getElementById("specimen_subnav");
+    subnav.style.display = "flex";
+    iframe.src = "{{ url_for('admin.list_categories') }}";
+    document.getElementById("sub_categories").classList.add("active");
+  } else if (module === "upload") {
+    var subnav = document.getElementById("upload_subnav");
+    subnav.style.display = "flex";
+    iframe.src = "{{ url_for('admin.upload_specimen') }}";
+    document.getElementById("sub_single_upload").classList.add("active");
+  } else if (module === "config") {
+    iframe.src = "{{ url_for('admin.page_config') }}";
+  }
+}
+
+function loadSubPage(url, element) {
+  iframe.src = url;
+  element.parentNode.querySelectorAll("a").forEach(a => a.classList.remove("active"));
+  element.classList.add("active");
+}
+
+window.onload = function() {
+  {% if current_user.role == 'superadmin' %}
+    switchModule('users');
+  {% else %}
+    switchModule('specimen');
+  {% endif %}
+
+  document.getElementById("sub_categories").onclick = function() {
+    loadSubPage("{{ url_for('admin.list_categories') }}", this);
+  };
+  document.getElementById("sub_specimens").onclick = function() {
+    loadSubPage("{{ url_for('admin.manage_specimens') }}", this);
+  };
+  document.getElementById("sub_single_upload").onclick = function() {
+    loadSubPage("{{ url_for('admin.upload_specimen') }}", this);
+  };
+  document.getElementById("sub_batch_upload").onclick = function() {
+    loadSubPage("{{ url_for('admin.batch_upload') }}", this);
+  };
+
+  {% if current_user.role == 'superadmin' %}
+  document.getElementById("menu_users").onclick = function() { switchModule('users'); };
+  {% endif %}
+  {% if current_user.role in ['superadmin','admin'] %}
+  document.getElementById("menu_specimen").onclick = function() { switchModule('specimen'); };
+  document.getElementById("menu_upload").onclick = function() { switchModule('upload'); };
+  {% if current_user.role == 'superadmin' %}
+  document.getElementById("menu_config").onclick = function() { switchModule('config'); };
+  {% endif %}
+  {% endif %}
+};
+
+// ========== Sidebar Toggle (mobile) ==========
+function toggleSidebar() {
+    var sidebar = document.querySelector(".sidebar");
+    var overlay = document.getElementById("sidebarOverlay");
+    var isOpen = sidebar.classList.contains("open");
+    if (isOpen) {
+        closeSidebar();
+    } else {
+        sidebar.classList.add("open");
+        overlay.classList.add("active");
+    }
+}
+function closeSidebar() {
+    var sidebar = document.querySelector(".sidebar");
+    var overlay = document.getElementById("sidebarOverlay");
+    sidebar.classList.remove("open");
+    overlay.classList.remove("active");
+}
+
+// Close sidebar when a nav link is clicked (mobile)
+document.querySelectorAll(".sidebar a").forEach(function(link) {
+    link.addEventListener("click", function() {
+        closeSidebar();
+    });
+});
+</script>
+
+</body>
+</html>

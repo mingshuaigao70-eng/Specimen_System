@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>标本大类管理</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+:root {
+  --primary: #2c5f7c;
+  --accent: #27ae60;
+  --danger: #e74c3c;
+  --bg: #f5f7fa;
+  --card-bg: #fff;
+  --text: #303133;
+  --text-secondary: #909399;
+  --border: #e8ecf1;
+  --shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  padding: 24px;
+}
+
+/* ========== Page Header ========== */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a3a4a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-title .title-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2c5f7c, #1abc9c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+}
+
+/* ========== Flash ========== */
+.flash-toast {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+}
+
+.flash-toast .alert {
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  animation: slideIn .3s ease;
+  margin: 0;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.alert-success { background: #e8f8f0; color: #155724; border-left: 4px solid #27ae60; }
+.alert-error   { background: #fef0f0; color: #721c24; border-left: 4px solid #e74c3c; }
+.alert-warning { background: #fef9e7; color: #856404; border-left: 4px solid #f39c12; }
+.alert-danger  { background: #fef0f0; color: #721c24; border-left: 4px solid #e74c3c; }
+
+/* ========== Add Button ========== */
+.btn-add-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-add-user:hover {
+  background: #219a52;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39,174,96,.3);
+  color: #fff;
+}
+
+.btn-add-user .plus-icon {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* ========== Card ========== */
+.card-wrap {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-header-bar .count-badge {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: #f5f7fa;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* ========== Table ========== */
+.category-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.category-table thead th {
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a3a4a;
+  text-align: center;
+  background: #fafbfc;
+  border-bottom: 2px solid var(--border);
+  letter-spacing: .5px;
+}
+
+.category-table tbody td {
+  padding: 13px 20px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  text-align: center;
+}
+
+.category-table tbody td.desc-col {
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 200px;
+}
+
+.desc-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.desc-text.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+.desc-toggle {
+  display: inline-block;
+  margin-top: 3px;
+  color: #409eff;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  user-select: none;
+  font-weight: 500;
+}
+
+.desc-toggle:hover {
+  color: #337ecc;
+  text-decoration: underline;
+}
+
+.category-table tbody tr {
+  transition: background .15s;
+}
+
+.category-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.category-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========== Action Buttons ========== */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-action-edit {
+  background: #ecf5ff;
+  color: #409eff;
+  border-color: #d9ecff;
+}
+
+.btn-action-edit:hover {
+  background: #409eff;
+  color: #fff;
+}
+
+.btn-action-delete {
+  background: #fef0f0;
+  color: #e74c3c;
+  border-color: #fde2e2;
+  margin-left: 6px;
+}
+
+.btn-action-delete:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* ========== Empty State ========== */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-secondary);
+}
+
+/* ========== Modal ========== */
+.modal-content {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a3a4a;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: #fafbfc;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 6px;
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+  padding: 9px 14px;
+  font-size: 15px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.form-control:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 3px rgba(64,158,255,.12);
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px;
+  padding: 8px 20px;
+  transition: all .2s;
+}
+
+.btn-primary {
+  background: #409eff;
+  border-color: #409eff;
+}
+
+.btn-primary:hover {
+  background: #337ecc;
+  border-color: #337ecc;
+}
+
+.btn-secondary {
+  background: #f5f7fa;
+  border-color: #dcdfe6;
+  color: #606266;
+}
+
+.btn-secondary:hover {
+  background: #e8ecf1;
+  border-color: #c0c4cc;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+</style>
+</head>
+<body>
+
+<!-- Flash Toast -->
+<div class="flash-toast" id="flashToast">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-title">
+    <div class="title-icon">&#128203;</div>
+    标本大类管理
+  </div>
+  <button type="button" class="btn-add-user" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+    <span class="plus-icon">+</span> 新增大类
+  </button>
+</div>
+
+<!-- Table Card -->
+<div class="card-wrap">
+  <div class="card-header-bar">
+    <span style="font-weight:600;font-size:16px;">大类列表</span>
+    <span class="count-badge">共 {{ categories|length }} 个大类</span>
+  </div>
+
+  {% if categories %}
+  <div style="overflow-x: auto;">
+<table class="category-table">
+    <thead>
+      <tr>
+        <th style="width:80px;">序号</th>
+        <th>名称</th>
+        <th>唯一性代码</th>
+        <th>说明</th>
+        <th>创建人</th>
+        <th>修改人</th>
+        <th>创建时间</th>
+        <th>修改时间</th>
+        <th style="width:140px;">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for cat in categories %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><strong>{{ cat.name }}</strong></td>
+        <td><span style="font-weight:600;">{{ cat.code or '-' }}</span></td>
+        <td class="desc-col">
+          <span class="desc-text">{{ cat.description or '-' }}</span>
+          {% if cat.description and cat.description|length > 40 %}
+          <span class="desc-toggle" onclick="toggleDesc(this)">展开 ▼</span>
+          {% endif %}
+        </td>
+        <td>{{ cat.created_by or '-' }}</td>
+        <td>{{ cat.updated_by or '-' }}</td>
+        <td>{{ cat.created_at | datetime }}</td>
+        <td>{{ cat.updated_at | datetime }}</td>
+        <td>
+          <button type="button" class="btn-action btn-action-edit" data-bs-toggle="modal" data-bs-target="#editModal{{ cat.id }}">
+            &#9998; 编辑
+          </button>
+          <button type="button" class="btn-action btn-action-delete" onclick="showDeleteModal(this)" data-form-action="{{ url_for('admin.delete_category', id=cat.id) }}">
+            &#10005; 删除
+          </button>
+        </td>
+      </tr>
+
+      <!-- 编辑 Modal -->
+      <div class="modal fade" id="editModal{{ cat.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <form action="{{ url_for('admin.edit_category', id=cat.id) }}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">编辑大类 — {{ cat.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label class="form-label">名称</label>
+                  <input type="text" name="name" class="form-control" value="{{ cat.name }}" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">唯一性代码</label>
+                  <input type="text" name="code" class="form-control" value="{{ cat.code or '' }}" required placeholder="如：A">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">封面图片</label>
+                  {% if cat.image %}
+                  <div style="margin-bottom:8px;">
+                    <img src="{{ url_for('static', filename='images/' + cat.image) }}" style="max-width:200px;border-radius:8px;border:1px solid #dcdfe6;">
+                    <small class="text-muted d-block">当前封面，上传新图将替换</small>
+                  </div>
+                  {% endif %}
+                  <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">说明</label>
+                  <textarea name="description" class="form-control" rows="3">{{ cat.description }}</textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-primary">保存修改</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+  {% else %}
+  <div class="empty-state">
+    <p>暂无大类，点击右上角「新增大类」添加</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 新增大类 Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form action="{{ url_for('admin.add_category') }}" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">新增大类</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">名称</label>
+            <input type="text" name="name" class="form-control" required placeholder="请输入大类名称">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">唯一性代码</label>
+            <input type="text" name="code" class="form-control" required placeholder="如：A，用于标本编号 HK-A-年份-序号">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">封面图片</label>
+            <input type="file" name="image" class="form-control" accept="image/*">
+            <small class="text-muted">用于首页分类卡片背景，推荐 240×300 像素</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">说明</label>
+            <textarea name="description" class="form-control" rows="3" placeholder="可选，填写大类说明"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="submit" class="btn btn-primary">添加</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 删除确认 Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">确认删除</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>确认删除此大类吗？若该类下有标本将无法删除。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Flash 消息 3 秒后淡出
+setTimeout(function() {
+  var toast = document.getElementById('flashToast');
+  if (toast) {
+    var alerts = toast.querySelectorAll('.alert');
+    alerts.forEach(function(el, i) {
+      setTimeout(function() {
+        el.style.transition = 'opacity .4s';
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 400);
+      }, i * 200);
+    });
+  }
+}, 3000);
+</script>
+
+<!-- Hidden CSRF form for delete -->
+<form id="csrfDeleteForm" method="POST" style="display:none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+
+<script>
+// 说明文字展开/收起
+function toggleDesc(btn) {
+  var text = btn.previousElementSibling;
+  var expanded = text.classList.toggle('expanded');
+  btn.textContent = expanded ? '收起 ▲' : '展开 ▼';
+}
+
+// 删除确认
+var deleteFormUrl = null;
+
+function showDeleteModal(btn) {
+  deleteFormUrl = btn.getAttribute('data-form-action');
+  new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+  if (deleteFormUrl) {
+    var form = document.getElementById('csrfDeleteForm');
+    form.action = deleteFormUrl;
+    form.submit();
+  }
+});
+</script>
+
+</body>
+</html>

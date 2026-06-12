@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 — 电子标本馆</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --abyss:    #0a2a38;
+        --deep-teal:#0d3e54;
+        --teal:     #177f7f;
+        --teal-light:#4db8b0;
+        --gold:     #c4943a;
+        --gold-light:#e8d5a3;
+        --cream:    #f7f5ef;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--abyss);
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* ============================================================
+       Animated Water Caustics Background
+       ============================================================ */
+    .bg-layer {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Deep water gradient */
+    .bg-gradient {
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 80% 60% at 50% 40%, #0d3e54 0%, transparent 70%),
+            radial-gradient(ellipse 60% 50% at 20% 80%, #0a2a38 0%, transparent 60%),
+            radial-gradient(ellipse 50% 40% at 80% 20%, #0b3446 0%, transparent 50%),
+            var(--abyss);
+    }
+
+    /* Floating light beams (caustics) */
+    .caustic {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: .12;
+        animation: float 12s ease-in-out infinite;
+    }
+    .caustic-1 {
+        width: 600px; height: 600px;
+        background: var(--teal-light);
+        top: -200px; left: -100px;
+        animation-delay: 0s;
+    }
+    .caustic-2 {
+        width: 400px; height: 400px;
+        background: var(--teal);
+        bottom: -150px; right: -80px;
+        animation-delay: -4s;
+        animation-duration: 15s;
+    }
+    .caustic-3 {
+        width: 300px; height: 300px;
+        background: var(--gold);
+        top: 40%; left: 50%;
+        animation-delay: -8s;
+        animation-duration: 10s;
+        opacity: .06;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(40px, -30px) scale(1.15); }
+        50% { transform: translate(-20px, 20px) scale(.9); }
+        75% { transform: translate(-30px, -10px) scale(1.1); }
+    }
+
+    /* Floating particles — like bubbles/sediment */
+    .particles {
+        position: absolute;
+        inset: 0;
+    }
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,.08);
+        animation: rise 18s linear infinite;
+    }
+    .particle:nth-child(1) { width:2px; height:2px; left:10%; animation-delay:0s; animation-duration:14s; }
+    .particle:nth-child(2) { width:3px; height:3px; left:25%; animation-delay:-3s; animation-duration:17s; }
+    .particle:nth-child(3) { width:1px; height:1px; left:40%; animation-delay:-6s; animation-duration:20s; }
+    .particle:nth-child(4) { width:2px; height:2px; left:55%; animation-delay:-9s; animation-duration:15s; }
+    .particle:nth-child(5) { width:3px; height:3px; left:70%; animation-delay:-12s; animation-duration:19s; }
+    .particle:nth-child(6) { width:1px; height:1px; left:85%; animation-delay:-15s; animation-duration:16s; }
+    .particle:nth-child(7) { width:2px; height:2px; left:15%; animation-delay:-2s; animation-duration:22s; }
+    .particle:nth-child(8) { width:1px; height:1px; left:60%; animation-delay:-7s; animation-duration:13s; }
+    .particle:nth-child(9) { width:2px; height:2px; left:35%; animation-delay:-11s; animation-duration:18s; }
+    .particle:nth-child(10){ width:3px; height:3px; left:78%; animation-delay:-5s; animation-duration:21s; }
+
+    @keyframes rise {
+        0%   { bottom:-20px; opacity:0; transform:translateX(0) scale(.5); }
+        10%  { opacity:.8; }
+        90%  { opacity:.3; }
+        100% { bottom:105%; opacity:0; transform:translateX(60px) scale(1.5); }
+    }
+
+    /* ============================================================
+       Login Card — Glass morphism
+       ============================================================ */
+    .login-wrapper {
+        position: relative;
+        z-index: 10;
+        width: 400px;
+    }
+
+    .login-card {
+        background: rgba(255,255,255,.06);
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 24px;
+        padding: 48px 44px 40px;
+        box-shadow:
+            0 8px 32px rgba(0,0,0,.3),
+            0 0 80px rgba(23,127,127,.08),
+            inset 0 1px 0 rgba(255,255,255,.06);
+        text-align: center;
+    }
+
+    /* Institution badge */
+    .login-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(196,148,58,.12);
+        border: 1px solid rgba(196,148,58,.2);
+        border-radius: 20px;
+        padding: 5px 16px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gold-light);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+    }
+    .login-badge .dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--gold);
+        box-shadow: 0 0 8px rgba(196,148,58,.5);
+    }
+
+    .login-title {
+        font-family: "Noto Serif SC", Georgia, serif;
+        font-size: 26px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 3px;
+        margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+        font-size: 13px;
+        color: rgba(255,255,255,.45);
+        margin-bottom: 36px;
+        letter-spacing: 1px;
+    }
+
+    /* Form */
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .input-group {
+        position: relative;
+    }
+
+    .input-group .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255,255,255,.3);
+        font-size: 16px;
+        pointer-events: none;
+        z-index: 1;
+        transition: color .25s;
+    }
+
+    .login-form input[type="text"],
+    .login-form input[type="password"] {
+        width: 100%;
+        padding: 13px 16px 13px 42px;
+        font-size: 15px;
+        color: #fff;
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 12px;
+        outline: none;
+        transition: all .3s var(--ease);
+        font-family: inherit;
+    }
+    .login-form input::placeholder {
+        color: rgba(255,255,255,.25);
+        font-size: 14px;
+    }
+    .login-form input:focus {
+        background: rgba(255,255,255,.08);
+        border-color: rgba(77,184,176,.4);
+        box-shadow: 0 0 24px rgba(23,127,127,.15);
+    }
+    .login-form input:focus + .input-icon,
+    .input-group:focus-within .input-icon {
+        color: var(--teal-light);
+    }
+
+    /* Captcha row */
+    .captcha-row {
+        display: flex;
+        gap: 10px;
+    }
+    .captcha-row input {
+        flex: 1;
+        padding-left: 16px !important;
+    }
+    .captcha-img {
+        height: 48px;
+        border-radius: 12px;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,.10);
+        transition: all .2s;
+    }
+    .captcha-img:hover {
+        border-color: rgba(77,184,176,.4);
+        box-shadow: 0 0 16px rgba(23,127,127,.12);
+    }
+
+    .captcha-hint {
+        font-size: 11px;
+        color: rgba(255,255,255,.3);
+        text-align: left;
+        margin-top: -6px;
+        letter-spacing: .5px;
+    }
+
+    /* Login button */
+    .btn-login {
+        width: 100%;
+        padding: 14px;
+        margin-top: 6px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        letter-spacing: 3px;
+        transition: all .35s var(--ease-spring);
+        box-shadow: 0 4px 24px rgba(23,127,127,.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-login::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,.08) 50%, transparent 100%);
+        transform: translateX(-100%);
+        transition: transform .6s;
+    }
+    .btn-login:hover::before {
+        transform: translateX(100%);
+    }
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 36px rgba(23,127,127,.4);
+    }
+    .btn-login:active {
+        transform: translateY(0);
+    }
+
+    /* Flash message */
+    .flash-message {
+        color: #f4a4a4;
+        font-size: 13px;
+        background: rgba(220,80,80,.10);
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(220,80,80,.15);
+        margin-bottom: 4px;
+        text-align: left;
+    }
+
+    /* Footer */
+    .login-footer {
+        margin-top: 28px;
+        font-size: 12px;
+        color: rgba(255,255,255,.25);
+        letter-spacing: 1px;
+    }
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+    @media (max-width: 480px) {
+        .login-wrapper { width: 92%; }
+        .login-card { padding: 36px 28px 32px; }
+        .login-title { font-size: 22px; letter-spacing: 2px; }
+    }
+
+    /* Ease variable for inputs */
+    :root { --ease: cubic-bezier(0.4, 0, 0.2, 1); --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); }
+    </style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-layer">
+    <div class="bg-gradient"></div>
+    <div class="caustic caustic-1"></div>
+    <div class="caustic caustic-2"></div>
+    <div class="caustic caustic-3"></div>
+    <div class="particles">
+        {% for i in range(10) %}<div class="particle"></div>{% endfor %}
+    </div>
+</div>
+
+<!-- Login card -->
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="login-badge">
+            <span class="dot"></span> YELLOW RIVER ESTUARY
+        </div>
+
+        <div class="login-title">电子标本馆</div>
+        <div class="login-subtitle">黄河口水质水生态监测中心</div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form class="login-form" method="POST" action="{{ url_for('auth.login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="input-group">
+                <input type="text" name="username" placeholder="用户名" required autocomplete="username">
+            </div>
+
+            <div class="input-group">
+                <input type="password" name="password" placeholder="密码" required autocomplete="current-password">
+            </div>
+
+            <div class="captcha-row">
+                <input type="text" name="captcha" placeholder="验证码" required autocomplete="off">
+                <img class="captcha-img" src="{{ url_for('auth.captcha') }}"
+                     onclick="this.src='{{ url_for('auth.captcha') }}?'+Math.random()" alt="验证码" title="点击刷新">
+            </div>
+            <div class="captcha-hint">点击图片刷新验证码</div>
+
+            <button type="submit" class="btn-login">登 录</button>
+        </form>
+
+        <div class="login-footer">
+            &copy; 黄河口水文水资源勘测局
+        </div>
+    </div>
+</div>
+
+<script>
+if (window.top !== window.self) {
+    window.top.location.href = window.location.href;
+}
+</script>
+
+</body>
+</html>

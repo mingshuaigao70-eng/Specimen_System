@@ -1,0 +1,1001 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ category.name }} — 黄河口水质水生态监测中心电子标本馆{% endblock %}
+
+{% block styles %}
+/* ============================================================
+   Page Layout
+   ============================================================ */
+.page-wrapper {
+    margin-top: var(--header-h);
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--header-h));
+}
+
+/* ============================================================
+   Top Bar — back button
+   ============================================================ */
+.top-bar {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    padding: 8px 24px;
+    background: linear-gradient(160deg,
+        rgba(23,127,127,.08) 0%,
+        rgba(77,184,176,.04) 50%,
+        rgba(247,245,239,.6) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 2px solid rgba(23,127,127,.12);
+}
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    background: rgba(255,255,255,.7);
+    border: 1px solid rgba(10,42,56,.08);
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all .25s var(--ease-smooth);
+    letter-spacing: .5px;
+}
+.btn-back:hover {
+    color: var(--teal);
+    border-color: rgba(23,127,127,.25);
+    background: rgba(23,127,127,.04);
+    transform: translateX(-3px);
+    box-shadow: 0 2px 12px rgba(23,127,127,.08);
+}
+.btn-back .arrow {
+    font-size: 15px;
+    transition: transform .25s var(--ease-smooth);
+}
+.btn-back:hover .arrow {
+    transform: translateX(-3px);
+}
+
+/* ============================================================
+   Main Body
+   ============================================================ */
+.main-body {
+    max-width: 1920px;
+    margin: 0 auto;
+    display: flex;
+    flex: 1;
+}
+
+/* ============================================================
+   Left Sidebar — wider, cleaner
+   ============================================================ */
+.sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(175deg,
+        rgba(13,62,84,.04) 0%,
+        rgba(23,127,127,.03) 30%,
+        rgba(255,255,255,.45) 60%,
+        rgba(247,245,239,.35) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(10,42,56,.06);
+    padding: 24px 20px;
+}
+
+/* --- Category info card --- */
+.cat-info-card {
+    background: linear-gradient(165deg,
+        rgba(13,62,84,.08) 0%,
+        rgba(23,127,127,.07) 30%,
+        rgba(77,184,176,.04) 60%,
+        rgba(196,148,58,.04) 100%);
+    border: 1px solid rgba(23,127,127,.12);
+    border-left: 4px solid var(--teal);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 24px 20px 20px;
+    margin-bottom: 24px;
+    position: relative;
+    cursor: default;
+    transition: all .3s var(--ease-smooth);
+    overflow: visible;
+    box-shadow:
+        0 2px 8px rgba(10,42,56,.04),
+        0 0 0 1px rgba(23,127,127,.03);
+}
+.cat-info-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(196,148,58,.15) 20%,
+        rgba(196,148,58,.15) 80%,
+        transparent 100%);
+    opacity: 0;
+    transition: opacity .3s;
+}
+.cat-info-card:hover {
+    border-left-color: var(--gold);
+    border-left-width: 6px;
+    border-color: rgba(23,127,127,.25);
+    box-shadow:
+        0 8px 32px rgba(10,42,56,.10),
+        0 0 0 6px rgba(23,127,127,.04),
+        0 0 60px rgba(23,127,127,.06);
+    transform: translateY(-2px);
+}
+.cat-info-card:hover::after {
+    opacity: 1;
+}
+
+.cat-icon-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.cat-icon-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal-light), var(--gold-light));
+    box-shadow: 0 0 14px rgba(77,184,176,.5);
+    flex-shrink: 0;
+}
+.cat-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--abyss);
+    letter-spacing: 2px;
+    line-height: 1.2;
+}
+.cat-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--text-3);
+    font-weight: 500;
+    padding-top: 4px;
+}
+.cat-count strong {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--teal);
+    font-family: var(--font-mono);
+    letter-spacing: -1px;
+}
+.cat-count .unit {
+    font-size: 13px;
+    color: var(--text-3);
+    font-weight: 400;
+    margin-left: 2px;
+}
+.cat-count .hint {
+    font-size: 11px;
+    color: #a0b4c4;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color .2s;
+}
+.cat-info-card:hover .hint {
+    color: var(--teal);
+}
+
+/* Hover popover */
+.cat-popover {
+    display: none;
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 0;
+    width: 320px;
+    background: linear-gradient(175deg, #fffefb 0%, #fefdf9 100%);
+    border: 1px solid rgba(23,127,127,.12);
+    border-top: 3px solid var(--teal);
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 22px;
+    box-shadow:
+        0 16px 48px rgba(10,42,56,.15),
+        0 0 0 8px rgba(10,42,56,.03);
+    z-index: 999;
+    cursor: default;
+    animation: popoverIn .2s var(--ease-smooth);
+}
+.cat-info-card:hover .cat-popover,
+.cat-popover.show { display: block; }
+
+@keyframes popoverIn {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.cat-popover .popover-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--abyss);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+.cat-popover .popover-desc {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.9;
+    margin-top: 12px;
+}
+.cat-popover .popover-meta {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0,0,0,.05);
+    font-size: 13px;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.popover-count {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--teal);
+    font-size: 18px;
+}
+.cat-popover::before {
+    content: '';
+    position: absolute;
+    left: -8px; top: 22px;
+    width: 0; height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid #fffefb;
+    filter: drop-shadow(-2px 0 2px rgba(10,42,56,.06));
+}
+.cat-popover::after {
+    content: '';
+    position: absolute;
+    left: -10px; top: 21px;
+    width: 0; height: 0;
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    border-right: 9px solid rgba(23,127,127,.12);
+    z-index: -1;
+}
+
+/* --- Cascading filter dropdowns --- */
+.filter-heading {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--deep-teal);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.filter-heading::before {
+    content: '';
+    width: 4px; height: 20px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--teal), var(--teal-light));
+    box-shadow: 0 0 8px rgba(23,127,127,.3);
+}
+.filter-heading::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 6px rgba(196,148,58,.5);
+    margin-left: auto;
+}
+.filter-group {
+    margin-bottom: 14px;
+}
+.filter-group label {
+    display: block;
+    font-size: 15px;
+    color: var(--text-3);
+    margin-bottom: 6px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.filter-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(10,42,56,.08);
+    border-radius: var(--radius-xs);
+    font-size: 15px;
+    color: var(--text);
+    background: var(--surface);
+    cursor: pointer;
+    outline: none;
+    transition: all .2s var(--ease-smooth);
+    appearance: auto;
+    font-family: inherit;
+}
+.filter-group select:hover {
+    border-color: rgba(23,127,127,.2);
+}
+.filter-group select:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(23,127,127,.06);
+}
+.filter-group select.has-value {
+    border-color: var(--teal);
+    background: linear-gradient(135deg, rgba(23,127,127,.08), rgba(77,184,176,.04));
+    font-weight: 600;
+    color: var(--deep-teal);
+    box-shadow: 0 0 0 2px rgba(23,127,127,.08);
+}
+
+.btn-clear-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    background: transparent;
+    color: var(--text-3);
+    border: 1px solid rgba(0,0,0,.06);
+    border-radius: 20px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s var(--ease-smooth);
+    font-weight: 500;
+}
+.btn-clear-filters:hover {
+    background: rgba(220,80,80,.04);
+    border-color: rgba(220,80,80,.2);
+    color: #c0392b;
+}
+
+/* ============================================================
+   Right Content Area
+   ============================================================ */
+.content-area {
+    max-width: 1600px;
+    margin: 0 auto;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    padding: 24px 32px 48px;
+    min-width: 0;
+}
+
+/* ============================================================
+   Filter Bar
+   ============================================================ */
+.filter-bar {
+    margin-bottom: 22px;
+    background: linear-gradient(160deg,
+        rgba(23,127,127,.04) 0%,
+        rgba(77,184,176,.02) 100%);
+    border: 1px solid rgba(23,127,127,.06);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+}
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.filter-input {
+    padding: 10px 16px;
+    font-size: 14px;
+    border: 1px solid rgba(10,42,56,.08);
+    border-radius: 10px;
+    outline: none;
+    width: 160px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    transition: all .25s var(--ease-smooth);
+    box-shadow: 0 1px 2px rgba(0,0,0,.02);
+}
+.filter-input:hover {
+    border-color: rgba(23,127,127,.18);
+}
+.filter-input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 4px rgba(23,127,127,.06);
+}
+.filter-input::placeholder { color: #b0b8c1; font-size: 13px; }
+
+.btn-filter-search {
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all .25s var(--ease-smooth);
+    white-space: nowrap;
+    box-shadow:
+        0 2px 8px rgba(23,127,127,.18),
+        0 1px 2px rgba(0,0,0,.06);
+}
+.btn-filter-search:hover {
+    background: linear-gradient(135deg, #1a9e9e 0%, #128080 100%);
+    box-shadow:
+        0 4px 16px rgba(23,127,127,.28),
+        0 2px 4px rgba(0,0,0,.08);
+    transform: translateY(-1px);
+}
+.btn-filter-search:active {
+    transform: translateY(0);
+}
+
+.btn-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-2);
+    background: var(--surface);
+    border: 1px solid rgba(10,42,56,.08);
+    border-radius: 10px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .2s var(--ease-smooth);
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0,0,0,.02);
+}
+.btn-filter-reset:hover {
+    background: rgba(0,0,0,.02);
+    border-color: rgba(10,42,56,.15);
+    color: var(--text);
+}
+
+/* ============================================================
+   Specimen Table
+   ============================================================ */
+.table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid rgba(23,127,127,.08);
+    border-top: 2px solid var(--teal);
+    box-shadow:
+        0 1px 3px rgba(10,42,56,.04),
+        0 8px 32px rgba(10,42,56,.07);
+    background: var(--surface);
+}
+.specimen-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+/* Header */
+.specimen-table thead th {
+    background: linear-gradient(180deg,
+        rgba(13,62,84,.12) 0%,
+        rgba(23,127,127,.08) 40%,
+        rgba(23,127,127,.03) 100%);
+    padding: 16px 18px;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--deep-teal);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid rgba(23,127,127,.18);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* Rows */
+.specimen-table tbody tr {
+    cursor: pointer;
+    transition: background .2s var(--ease-smooth);
+    border-bottom: 1px solid rgba(10,42,56,.03);
+}
+.specimen-table tbody tr:last-child { border-bottom: none; }
+
+/* Alternating row */
+.specimen-table tbody tr:nth-child(even) {
+    background: rgba(77,184,176,.04);
+}
+
+/* Hover highlight */
+.specimen-table tbody tr:hover {
+    background: linear-gradient(90deg,
+        rgba(23,127,127,.10) 0%,
+        rgba(77,184,176,.05) 45%,
+        rgba(196,148,58,.02) 100%);
+}
+
+/* Left accent bar on hover */
+.specimen-table tbody tr td:first-child {
+    border-left: 3px solid transparent;
+    transition: border-color .25s var(--ease-spring);
+}
+.specimen-table tbody tr:hover td:first-child {
+    border-left: 3px solid var(--gold);
+}
+
+/* Cells */
+.specimen-table tbody td {
+    padding: 16px 18px;
+    color: var(--text);
+    vertical-align: middle;
+    line-height: 1.4;
+}
+
+/* Column styles */
+.col-number {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--teal);
+    white-space: nowrap;
+    letter-spacing: .3px;
+}
+.col-name {
+    color: var(--text);
+    font-weight: 500;
+}
+.col-latin {
+    font-style: italic;
+    color: var(--text-2);
+    font-size: 15px;
+}
+.col-empty {
+    color: #c0c4cc;
+    font-size: 15px;
+}
+
+/* Thumbnail */
+.table-thumb {
+    width: 52px; height: 52px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    background: #eef2f7;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    transition: all .3s var(--ease-smooth);
+}
+.specimen-table tbody tr:hover .table-thumb {
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,.10);
+}
+.table-thumb-placeholder {
+    width: 52px; height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eceff2, #f4f5f7);
+    border-radius: 8px;
+    font-size: 11px;
+    color: #c5cdd3;
+}
+
+/* ============================================================
+   Pagination
+   ============================================================ */
+.pagination-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 28px;
+    font-size: 14px;
+    color: var(--text-3);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.pagination-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    text-decoration: none;
+    border: 1px solid rgba(23,127,127,.12);
+    color: var(--deep-teal);
+    background: var(--surface);
+    transition: all .2s var(--ease-smooth);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(10,42,56,.03);
+}
+.page-btn:hover {
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    border-color: var(--teal);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(23,127,127,.25);
+    transform: translateY(-2px);
+}
+.page-btn.disabled {
+    color: #ccc;
+    pointer-events: none;
+    font-weight: 400;
+    box-shadow: none;
+}
+.page-info {
+    font-size: 14px;
+    color: var(--text-2);
+    white-space: nowrap;
+    padding: 0 6px;
+}
+.page-info strong {
+    color: var(--teal);
+    font-weight: 700;
+}
+.page-jumper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-3);
+    white-space: nowrap;
+}
+.page-jumper-input {
+    width: 52px;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid rgba(10,42,56,.10);
+    border-radius: 8px;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-mono);
+    transition: all .2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.02);
+}
+.page-jumper-input:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(23,127,127,.06);
+}
+.page-jumper button {
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, var(--teal) 0%, #0d5e5e 100%);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all .2s var(--ease-smooth);
+    box-shadow: 0 2px 8px rgba(23,127,127,.18);
+}
+.page-jumper button:hover {
+    background: linear-gradient(135deg, #1a9e9e 0%, #128080 100%);
+    box-shadow: 0 4px 14px rgba(23,127,127,.28);
+    transform: translateY(-1px);
+}
+
+/* ============================================================
+   Empty State
+   ============================================================ */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+.empty-icon-circle {
+    width: 80px; height: 80px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(23,127,127,.05), rgba(77,184,176,.03));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: var(--text-3);
+}
+.empty-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+.empty-desc {
+    font-size: 15px;
+    color: var(--text-3);
+    line-height: 1.7;
+}
+.empty-desc a {
+    color: var(--teal);
+    text-decoration: none;
+    font-weight: 600;
+}
+.empty-desc a:hover { text-decoration: underline; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1100px) {
+    .filter-input { width: 130px; }
+    .sidebar { width: 270px; }
+}
+@media (max-width: 900px) {
+    .main-body {
+    max-width: 1920px;
+    margin: 0 auto; flex-direction: column; }
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(0,0,0,.04);
+        padding: 16px 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .cat-info-card {
+        flex: 1 1 220px;
+        max-width: 360px;
+        margin-bottom: 0;
+    }
+    .cat-popover { display: none !important; }
+    .sidebar > form { flex: 2 1 300px; }
+    .sidebar > form .filter-group {
+        display: inline-block;
+        width: calc(33% - 6px);
+        margin-right: 4px;
+    }
+    .filter-heading { display: none; }
+    .content-area {
+    max-width: 1600px;
+    margin: 0 auto; padding: 16px 18px 36px; }
+    .filter-input { width: 120px; }
+    .top-bar { padding: 6px 18px; }
+}
+@media (max-width: 600px) {
+    .sidebar > form .filter-group { width: calc(50% - 4px); }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .filter-input { width: 100%; }
+    .btn-filter-search, .btn-filter-reset {
+        text-align: center;
+        justify-content: center;
+    }
+    .specimen-table { font-size: 14px; }
+    .specimen-table thead th,
+    .specimen-table tbody td { padding: 10px 12px; }
+    .table-thumb, .table-thumb-placeholder { width: 42px; height: 42px; }
+    .pagination-wrap { flex-direction: column; align-items: center; text-align: center; }
+    .pagination-nav { justify-content: center; }
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-wrapper">
+
+    <!-- ========== Top Bar — back button ========== -->
+    <div class="top-bar">
+        <a href="javascript:history.back()" class="btn-back">
+            <span class="arrow">←</span> 返回
+        </a>
+    </div>
+
+    <!-- ========== Main Body ========== -->
+    <div class="main-body">
+
+        <!-- ========== Left Sidebar ========== -->
+        <div class="sidebar">
+
+            <!-- Category info card -->
+            <div class="cat-info-card">
+                <div class="cat-icon-row">
+                    <span class="cat-icon-dot"></span>
+                </div>
+                <div class="cat-name">{{ category.name }}</div>
+                <div class="cat-count">
+                    <span>共 <strong>{{ category_total }}</strong> <span class="unit">件标本</span></span>
+                    {% if category.description %}
+                    <span class="hint">&#x24d8; 点击查看详情</span>
+                    {% endif %}
+                </div>
+
+                <!-- Hover popover -->
+                {% if category.description %}
+                <div class="cat-popover">
+                    <div class="popover-name">{{ category.name }}</div>
+                    <div class="popover-desc">{{ category.description }}</div>
+                    <div class="popover-meta">
+                        共 <span class="popover-count">{{ category_total }}</span> 件标本
+                        {% if category.created_at %}
+                        &middot; {{ category.created_at.strftime('%Y-%m-%d') }} 创建
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Cascading filter dropdowns -->
+            <form method="get" action="{{ url_for('main.specimen_list', category_id=category.id) }}" id="filterForm">
+                <div class="filter-heading">分类筛选</div>
+
+                {% for level in filter_levels %}
+                <div class="filter-group">
+                    <label>{{ level.label }}</label>
+                    <select name="{{ level.filter_key }}" onchange="this.form.submit()"
+                            {% if level.current_value %} class="has-value"{% endif %}>
+                        <option value="">全部{{ level.label }}</option>
+                        {% for val, cnt in level.options %}
+                        <option value="{{ val }}"{% if level.current_value == val %} selected{% endif %}>{{ val }} ({{ cnt }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+
+                {% if current_filters.phylum or current_filters.class_name or current_filters.order_name or current_filters.family or current_filters.genus or current_filters.species %}
+                <a href="{{ url_for('main.specimen_list', category_id=category.id) }}" class="btn-clear-filters">&#x2715; 清除分级筛选</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- ========== Right Content ========== -->
+        <div class="content-area">
+
+            <!-- Text search filter bar -->
+            <div class="filter-bar">
+                <div class="filter-form">
+                    <input type="text" name="chinese_name" form="filterForm"
+                           placeholder="中文名" value="{{ current_filters.chinese_name }}"
+                           class="filter-input">
+                    <input type="text" name="latin_name" form="filterForm"
+                           placeholder="拉丁名" value="{{ current_filters.latin_name }}"
+                           class="filter-input">
+                    <input type="text" name="order_name" form="filterForm"
+                           placeholder="目名" value="{{ current_filters.order_name }}"
+                           class="filter-input">
+                    <input type="text" name="family" form="filterForm"
+                           placeholder="科名" value="{{ current_filters.family }}"
+                           class="filter-input">
+                    <input type="text" name="genus" form="filterForm"
+                           placeholder="属名" value="{{ current_filters.genus }}"
+                           class="filter-input">
+                    <button type="submit" form="filterForm" class="btn-filter-search">搜 索</button>
+                    <a href="{{ url_for('main.specimen_list', category_id=category.id) }}" class="btn-filter-reset">重 置</a>
+                </div>
+            </div>
+
+            <!-- Specimen Table -->
+            {% if specimens %}
+            <div class="table-wrap">
+                <table class="specimen-table">
+                    <thead>
+                        <tr>
+                            <th>标本编号</th>
+                            <th>中文名</th>
+                            <th>拉丁名</th>
+                            <th>目名</th>
+                            <th>科名</th>
+                            <th>属名</th>
+                            <th>图片</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in specimens %}
+                        <tr onclick="window.location='{{ url_for('main.specimen_detail', id=s.id) }}'">
+                            <td class="col-number">{{ s.specimen_number if s.specimen_number else '-' }}</td>
+                            <td class="col-name">{{ s.chinese_name if s.chinese_name else '-' }}</td>
+                            <td class="col-latin">{{ s.latin_name if s.latin_name else '-' }}</td>
+                            <td>{{ s.order_name if s.order_name else '-' }}</td>
+                            <td>{{ s.family if s.family else '-' }}</td>
+                            <td>{{ s.genus if s.genus else '-' }}</td>
+                            <td>
+                                {% if s.images %}
+                                <img class="table-thumb" src="{{ url_for('static', filename=s.images[0].image_path) }}" alt="{{ s.chinese_name or s.latin_name or '标本' }}" loading="lazy">
+                                {% else %}
+                                <div class="table-thumb-placeholder">无图</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-wrap">
+                <div class="pagination-nav">
+                    {% if pagination.has_prev %}
+                    <a href="{{ url_for('main.specimen_list', category_id=category.id, page=pagination.prev_num, **current_filters) }}" class="page-btn">← 上一页</a>
+                    {% else %}
+                    <span class="page-btn disabled">← 上一页</span>
+                    {% endif %}
+
+                    <span class="page-info">
+                        第 <strong>{{ pagination.page }}</strong> / {{ pagination.pages }} 页
+                        &middot; 共 <strong>{{ pagination.total }}</strong> 条
+                    </span>
+
+                    {% if pagination.has_next %}
+                    <a href="{{ url_for('main.specimen_list', category_id=category.id, page=pagination.next_num, **current_filters) }}" class="page-btn">下一页 →</a>
+                    {% else %}
+                    <span class="page-btn disabled">下一页 →</span>
+                    {% endif %}
+                </div>
+
+                {% if pagination.pages > 1 %}
+                <form method="get" class="page-jumper" action="{{ url_for('main.specimen_list', category_id=category.id) }}">
+                    {% for key, val in current_filters.items() %}
+                    {% if val %}<input type="hidden" name="{{ key }}" value="{{ val }}">{% endif %}
+                    {% endfor %}
+                    <label>跳转到第</label>
+                    <input type="number" name="page" min="1" max="{{ pagination.pages }}"
+                           value="{{ pagination.page }}" class="page-jumper-input">
+                    <label>页</label>
+                    <button type="submit">GO</button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon-circle">🔍</div>
+                <div class="empty-title">
+                    {% if current_filters.chinese_name or current_filters.latin_name or current_filters.phylum or current_filters.class_name or current_filters.order_name or current_filters.family or current_filters.genus or current_filters.species %}
+                    没有匹配的标本
+                    {% else %}
+                    该分类下暂无标本
+                    {% endif %}
+                </div>
+                <div class="empty-desc">
+                    {% if current_filters.chinese_name or current_filters.latin_name or current_filters.phylum or current_filters.class_name or current_filters.order_name or current_filters.family or current_filters.genus or current_filters.species %}
+                    试试<a href="{{ url_for('main.specimen_list', category_id=category.id) }}">清除筛选条件</a>
+                    {% else %}
+                    请联系管理员上传标本数据
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<script>
+// Touch-friendly popover toggle
+(function() {
+    var catCard = document.querySelector('.cat-info-card');
+    if (!catCard) return;
+    var popover = catCard.querySelector('.cat-popover');
+    if (!popover) return;
+
+    catCard.addEventListener('click', function(e) {
+        if (e.target.closest('a, button, select')) return;
+        e.stopPropagation();
+        popover.classList.toggle('show');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!catCard.contains(e.target)) {
+            popover.classList.remove('show');
+        }
+    });
+})();
+</script>
+
+{% endblock %}

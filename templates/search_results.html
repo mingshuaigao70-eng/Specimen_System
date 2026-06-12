@@ -1,0 +1,927 @@
+{% extends "main/base.html" %}
+
+{% block title %}搜索 "{{ query }}" — 黄河口水质水生态监测中心电子标本馆{% endblock %}
+
+{% block styles %}
+/* ============================================================
+   Page Layout
+   ============================================================ */
+.page-wrapper {
+    margin-top: var(--header-h);
+    min-height: calc(100vh - var(--header-h));
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================================
+   Top Bar — synced with specimen_list
+   ============================================================ */
+.top-bar {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    padding: 8px 24px;
+    background: linear-gradient(160deg,
+        rgba(23,127,127,.08) 0%,
+        rgba(77,184,176,.04) 50%,
+        rgba(247,245,239,.6) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 2px solid rgba(23,127,127,.12);
+}
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    background: rgba(255,255,255,.7);
+    border: 1px solid rgba(10,42,56,.08);
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all .25s var(--ease-smooth);
+    letter-spacing: .5px;
+}
+.btn-back:hover {
+    color: var(--teal);
+    border-color: rgba(23,127,127,.25);
+    background: rgba(23,127,127,.04);
+    transform: translateX(-3px);
+    box-shadow: 0 2px 12px rgba(23,127,127,.08);
+}
+.btn-back .arrow { font-size: 15px; transition: transform .25s var(--ease-smooth); }
+.btn-back:hover .arrow { transform: translateX(-3px); }
+
+/* ============================================================
+   Search Hero — atmospheric "investigation desk" focal point
+   ============================================================ */
+.search-hero {
+    position: relative;
+    padding: 48px 24px 40px;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* Ambient glow behind search */
+.search-hero::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px; height: 200px;
+    background: radial-gradient(ellipse, rgba(23,127,127,.07) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.search-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.search-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 16px;
+}
+
+.search-label::before,
+.search-label::after {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--teal-light);
+    opacity: .4;
+    border-radius: 1px;
+}
+
+/* Search pill — enlarged, dramatic */
+.search-pill-large {
+    display: flex;
+    align-items: stretch;
+    background: var(--surface);
+    border-radius: 60px;
+    box-shadow: var(--shadow-lg), 0 0 0 4px rgba(23,127,127,.03);
+    overflow: hidden;
+    border: 1px solid rgba(10,42,56,.06);
+    transition: all .4s var(--ease-spring);
+}
+
+.search-pill-large:focus-within {
+    box-shadow: 0 12px 56px rgba(10,42,56,.12), 0 0 0 6px rgba(23,127,127,.04), 0 0 80px rgba(23,127,127,.08);
+    border-color: rgba(23,127,127,.25);
+    transform: scale(1.01);
+}
+
+.search-pill-large input[type="text"] {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 16px 28px;
+    font-size: 16px;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    min-width: 0;
+}
+
+.search-pill-large input::placeholder {
+    color: #b8c0c8;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.search-pill-large button {
+    padding: 16px 36px;
+    border: none;
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all .3s var(--ease-smooth);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.search-pill-large button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #199a9a 0%, #128080 100%);
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.search-pill-large button:hover::after { opacity: 1; }
+
+.search-pill-large button span {
+    position: relative;
+    z-index: 1;
+}
+
+.search-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-3);
+    letter-spacing: .3px;
+    opacity: .8;
+}
+
+/* ============================================================
+   Divider Ornament
+   ============================================================ */
+.section-rule {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.section-rule::before,
+.section-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(10,42,56,.08), transparent);
+}
+
+.section-rule .dot-ring {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    background: transparent;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   Result Summary — elegant count display
+   ============================================================ */
+.result-summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 24px 36px 0;
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.result-summary .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.result-summary .keyword {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--abyss);
+    letter-spacing: 1px;
+    position: relative;
+}
+
+/* Subtle highlight under keyword */
+.result-summary .keyword::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 6px;
+    background: rgba(23,127,127,.08);
+    border-radius: 2px;
+    z-index: -1;
+}
+
+.result-summary .count {
+    font-size: 13px;
+    color: var(--text-2);
+    font-weight: 500;
+}
+
+.result-summary .count strong {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--teal);
+    margin: 0 2px;
+    font-family: var(--font-mono);
+}
+
+/* ============================================================
+   Specimen Grid — "archive drawer" specimen slides
+   ============================================================ */
+.results-area {
+    flex: 1;
+    padding: 28px 36px 60px;
+    max-width: 1800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.specimen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 28px;
+}
+
+/* ── Specimen Slide Card ── */
+.specimen-card {
+    position: relative;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: all .4s var(--ease-spring);
+    border: 1px solid rgba(10,42,56,.05);
+    /* Staggered entrance animation */
+    animation: slideReveal .6s var(--ease-spring) both;
+}
+
+@keyframes slideReveal {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger delay per card (up to 12 cards) */
+.specimen-card:nth-child(1)  { animation-delay: .04s; }
+.specimen-card:nth-child(2)  { animation-delay: .08s; }
+.specimen-card:nth-child(3)  { animation-delay: .12s; }
+.specimen-card:nth-child(4)  { animation-delay: .16s; }
+.specimen-card:nth-child(5)  { animation-delay: .20s; }
+.specimen-card:nth-child(6)  { animation-delay: .24s; }
+.specimen-card:nth-child(7)  { animation-delay: .28s; }
+.specimen-card:nth-child(8)  { animation-delay: .32s; }
+.specimen-card:nth-child(9)  { animation-delay: .36s; }
+.specimen-card:nth-child(10) { animation-delay: .40s; }
+.specimen-card:nth-child(11) { animation-delay: .44s; }
+.specimen-card:nth-child(12) { animation-delay: .48s; }
+
+.specimen-card:hover {
+    transform: translateY(-8px);
+    box-shadow:
+        0 16px 48px rgba(10,42,56,.12),
+        0 0 0 2px rgba(23,127,127,.06),
+        0 0 40px rgba(23,127,127,.04);
+    border-color: rgba(23,127,127,.15);
+}
+
+/* ── Category badge — floating glass tag ── */
+.card-cat-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 3;
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 5px 14px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 1.5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    border: 1px solid rgba(255,255,255,.6);
+    transition: all .3s var(--ease-smooth);
+}
+
+.specimen-card:hover .card-cat-badge {
+    background: rgba(255,255,255,.95);
+    box-shadow: 0 4px 18px rgba(10,42,56,.10);
+}
+
+/* ── Image area — specimen slide glass ── */
+.card-img-wrap {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(170deg, #eaf1ef 0%, #eef3f0 40%, #e3ebe6 100%);
+    position: relative;
+}
+
+/* Glass reflection on image */
+.card-img-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+        rgba(255,255,255,.06) 0%,
+        transparent 30%,
+        transparent 70%,
+        rgba(10,42,56,.04) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s var(--ease-smooth);
+}
+
+.specimen-card:hover .card-img {
+    transform: scale(1.07);
+}
+
+.card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #e8edeb 0%, #eef1ec 50%, #e3eae8 100%);
+}
+
+.card-img-placeholder svg {
+    opacity: .22;
+    color: #bcc7c0;
+    transition: all .4s;
+}
+
+.specimen-card:hover .card-img-placeholder svg {
+    opacity: .35;
+    transform: scale(1.1);
+}
+
+/* ── Card body ── */
+.card-body {
+    padding: 20px 22px 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Specimen ID line — top of card body */
+.card-specimen-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: .5px;
+    margin-bottom: 10px;
+    opacity: .8;
+}
+
+/* Chinese name */
+.card-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+    letter-spacing: 1px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Latin name */
+.card-latin {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--text-3);
+    margin-bottom: 14px;
+    letter-spacing: .3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Taxonomy trail — styled as beaded breadcrumb ── */
+.card-taxonomy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 4px;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 16px;
+    line-height: 1.7;
+}
+
+.card-taxonomy .taxon {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(23,127,127,.04);
+    border-radius: 8px;
+    color: var(--text-2);
+    font-weight: 500;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all .2s;
+}
+
+.specimen-card:hover .card-taxonomy .taxon {
+    background: rgba(23,127,127,.07);
+}
+
+.card-taxonomy .taxon-sep {
+    color: #c8cfcc;
+    font-size: 10px;
+    margin: 0 1px;
+    user-select: none;
+}
+
+/* ── Card footer ── */
+.card-footer-row {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(10,42,56,.05);
+    font-size: 12px;
+    color: var(--text-3);
+}
+
+.card-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.card-meta-info span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.card-meta-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* View detail indicator */
+.card-view-hint {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: all .3s var(--ease-smooth);
+    white-space: nowrap;
+    letter-spacing: .5px;
+}
+
+.specimen-card:hover .card-view-hint {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* ============================================================
+   Pagination — clean pill row
+   ============================================================ */
+.pagination-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 0 4px;
+    flex-wrap: wrap;
+}
+
+.page-dot-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 21px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-2);
+    border: 1.5px solid rgba(10,42,56,.06);
+    background: var(--surface);
+    transition: all .25s var(--ease-smooth);
+    letter-spacing: .5px;
+}
+
+.page-dot-btn:hover {
+    background: rgba(23,127,127,.05);
+    border-color: rgba(23,127,127,.2);
+    color: var(--teal);
+    box-shadow: 0 2px 12px rgba(23,127,127,.06);
+}
+
+.page-dot-btn.current {
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    color: #fff;
+    border-color: var(--teal);
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(23,127,127,.28);
+}
+
+.page-dot-btn.disabled {
+    color: #ccd0d4;
+    pointer-events: none;
+    border-color: rgba(10,42,56,.03);
+}
+
+.page-ellipsis {
+    width: 42px;
+    text-align: center;
+    color: #c8ccd0;
+    font-size: 12px;
+    letter-spacing: 3px;
+    user-select: none;
+}
+
+.pagination-info {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-3);
+    padding: 10px 0 0;
+    letter-spacing: .3px;
+}
+
+/* ============================================================
+   Empty State — atmospheric void
+   ============================================================ */
+.empty-state {
+    text-align: center;
+    padding: 64px 24px 80px;
+    position: relative;
+}
+
+/* Soft radial vignette */
+.empty-state::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px; height: 300px;
+    background: radial-gradient(ellipse, rgba(23,127,127,.04) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.empty-icon-circle {
+    width: 96px; height: 96px;
+    margin: 0 auto 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(23,127,127,.05), rgba(77,184,176,.03));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    color: var(--text-3);
+    position: relative;
+    z-index: 1;
+    border: 1.5px solid rgba(23,127,127,.08);
+    box-shadow: 0 8px 40px rgba(23,127,127,.04);
+}
+
+.empty-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--abyss);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+}
+
+.empty-desc {
+    font-size: 14px;
+    color: var(--text-3);
+    margin-bottom: 28px;
+    line-height: 1.8;
+    position: relative;
+    z-index: 1;
+}
+
+.empty-desc strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.empty-suggestions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.empty-suggestions a {
+    display: inline-block;
+    padding: 8px 22px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+    background: rgba(23,127,127,.04);
+    text-decoration: none;
+    border: 1px solid rgba(23,127,127,.08);
+    transition: all .25s var(--ease-smooth);
+    letter-spacing: .5px;
+}
+
+.empty-suggestions a:hover {
+    background: rgba(23,127,127,.10);
+    border-color: rgba(23,127,127,.22);
+    color: var(--deep-teal);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(23,127,127,.08);
+}
+
+.empty-suggestions a.primary-suggestion {
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    color: #fff;
+    border-color: var(--teal);
+    font-weight: 600;
+}
+
+.empty-suggestions a.primary-suggestion:hover {
+    box-shadow: 0 6px 24px rgba(23,127,127,.25);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 900px) {
+    .top-bar { padding: 6px 18px; }
+    .search-hero { padding: 32px 18px 28px; }
+    .search-pill-large input[type="text"] { padding: 14px 20px; font-size: 14px; }
+    .search-pill-large button { padding: 14px 22px; font-size: 14px; letter-spacing: 1px; }
+    .specimen-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+    .card-img-wrap { height: 190px; }
+    .card-body { padding: 16px 18px 14px; }
+    .card-name { font-size: 16px; }
+    .result-summary { padding: 18px 18px 0; }
+    .result-summary .keyword { font-size: 16px; }
+    .results-area { padding: 20px 18px 48px; }
+}
+
+@media (min-width: 1600px) {
+    .search-pill-large { max-width: 780px; margin: 0 auto; }
+    .search-pill-large input[type="text"] { font-size: 18px; padding: 20px 32px; }
+    .search-pill-large button { font-size: 17px; padding: 20px 44px; }
+    .search-hero { padding: 64px 24px 52px; }
+    .results-area { padding: 36px 48px 72px; }
+    .specimen-grid { gap: 36px; }
+    .card-img-wrap { height: 260px; }
+    .card-name { font-size: 20px; }
+    .card-latin { font-size: 14px; }
+}
+
+@media (max-width: 600px) {
+    .top-bar { padding: 6px 14px; }
+    .search-hero { padding: 24px 12px 22px; }
+    .search-pill-large { border-radius: 40px; }
+    .search-pill-large input[type="text"] { padding: 12px 16px; font-size: 13px; }
+    .search-pill-large button { padding: 12px 18px; font-size: 13px; }
+    .search-hint { font-size: 11px; }
+    .specimen-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card-img-wrap { height: 150px; }
+    .card-body { padding: 12px 14px 10px; }
+    .card-name { font-size: 14px; letter-spacing: .5px; }
+    .card-latin { font-size: 11px; margin-bottom: 10px; }
+    .card-taxonomy { font-size: 10px; gap: 1px 3px; margin-bottom: 10px; }
+    .card-taxonomy .taxon { padding: 1px 6px; max-width: 80px; }
+    .card-footer-row { font-size: 10px; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .card-cat-badge { top: 8px; right: 8px; font-size: 10px; padding: 3px 10px; }
+    .result-summary { padding: 12px 12px 0; gap: 4px 8px; }
+    .result-summary .keyword { font-size: 14px; }
+    .result-summary .count strong { font-size: 18px; }
+    .results-area { padding: 14px 12px 40px; }
+    .pagination-wrap { gap: 3px; }
+    .page-dot-btn { min-width: 34px; height: 34px; font-size: 12px; padding: 0 10px; }
+    .section-rule { padding: 0 12px; }
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-wrapper">
+
+    <!-- ========== Top Bar — synced ========== -->
+    <div class="top-bar">
+        <a href="{{ url_for('main.index') }}" class="btn-back">
+            <span class="arrow">←</span> 返回首页
+        </a>
+    </div>
+
+    <!-- ========== Search Hero ========== -->
+    <div class="search-hero">
+        <div class="search-hero-inner">
+            <div class="search-label">标本检索</div>
+            <form class="search-pill-large" action="{{ url_for('main.search') }}" method="get"
+                  onsubmit="var q=this.q.value.trim();if(!q){alert('请输入关键词');return false;}if(q.length<2){alert('关键词至少需要2个字符');return false;}">
+                <input type="text" name="q"
+                       placeholder="输入标本名称、编号或分类关键词…"
+                       value="{{ query }}"
+                       minlength="2"
+                       autofocus>
+                <button type="submit"><span>搜 索</span></button>
+            </form>
+            <p class="search-hint">支持中文名 · 拉丁名 · 别名 · 门纲目科属种检索 · 多个关键词空格分隔</p>
+        </div>
+    </div>
+
+    {% if result_count > 0 %}
+    <!-- ========== Divider ========== -->
+    <div class="section-rule">
+        <span class="dot-ring"></span>
+    </div>
+
+    <!-- ========== Result Summary ========== -->
+    <div class="result-summary">
+        <span class="label">搜索结果</span>
+        <span class="keyword">{{ query }}</span>
+        <span class="count">— 找到 <strong>{{ result_count }}</strong> 件标本</span>
+    </div>
+
+    <!-- ========== Specimen Grid ========== -->
+    <div class="results-area">
+        <div class="specimen-grid">
+            {% for s in results %}
+            <a href="{{ url_for('main.specimen_detail', id=s.id) }}" class="specimen-card">
+                {% if s.category %}
+                <span class="card-cat-badge">{{ s.category.code or s.category.name }}</span>
+                {% endif %}
+
+                <div class="card-img-wrap">
+                    {% if s.images %}
+                    <img class="card-img" src="{{ url_for('static', filename=s.images[0].image_path) }}"
+                         alt="{{ s.chinese_name or s.latin_name }}" loading="lazy">
+                    {% else %}
+                    <div class="card-img-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <rect x="3" y="3" width="18" height="18" rx="3" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    {% if s.specimen_number %}
+                    <div class="card-specimen-id">{{ s.specimen_number }}</div>
+                    {% endif %}
+                    <div class="card-name">{{ s.chinese_name or s.latin_name }}</div>
+                    {% if s.chinese_name and s.latin_name %}
+                    <div class="card-latin"><em>{{ s.latin_name }}</em></div>
+                    {% endif %}
+
+                    {% if s.phylum or s.class_name or s.order_name or s.family or s.genus %}
+                    <div class="card-taxonomy">
+                        {% if s.phylum %}<span class="taxon">{{ s.phylum }}</span><span class="taxon-sep">›</span>{% endif %}
+                        {% if s.class_name %}<span class="taxon">{{ s.class_name }}</span><span class="taxon-sep">›</span>{% endif %}
+                        {% if s.order_name %}<span class="taxon">{{ s.order_name }}</span><span class="taxon-sep">›</span>{% endif %}
+                        {% if s.family %}<span class="taxon">{{ s.family }}</span>{% if s.genus %}<span class="taxon-sep">›</span>{% endif %}{% endif %}
+                        {% if s.genus %}<span class="taxon">{{ s.genus }}</span>{% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="card-footer-row">
+                        <span class="card-meta-info">
+                            {% if s.collect_location %}<span class="card-meta-icon">📍</span><span title="{{ s.collect_location }}">{{ s.collect_location }}</span>{% endif %}
+                            {% if s.collector %}<span class="card-meta-icon">👤</span><span title="{{ s.collector }}">{{ s.collector }}</span>{% endif %}
+                        </span>
+                        <span class="card-view-hint">查看详情 →</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ========== Pagination ========== -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pagination-wrap">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('main.search', q=query, page=pagination.prev_num) }}" class="page-dot-btn">← 上一页</a>
+        {% else %}
+        <span class="page-dot-btn disabled">← 上一页</span>
+        {% endif %}
+
+        {% for p in range(1, pagination.pages + 1) %}
+            {% if p == pagination.page %}
+            <span class="page-dot-btn current">{{ p }}</span>
+            {% elif p <= 2 or p > pagination.pages - 2 or (p - pagination.page)|abs <= 1 %}
+            <a href="{{ url_for('main.search', q=query, page=p) }}" class="page-dot-btn">{{ p }}</a>
+            {% elif p == 3 or p == pagination.pages - 2 %}
+            <span class="page-ellipsis">···</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="{{ url_for('main.search', q=query, page=pagination.next_num) }}" class="page-dot-btn">下一页 →</a>
+        {% else %}
+        <span class="page-dot-btn disabled">下一页 →</span>
+        {% endif %}
+    </div>
+    <div class="pagination-info">
+        第 {{ pagination.page }} / {{ pagination.pages }} 页 · 共 {{ pagination.total }} 条记录
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- ========== Empty State ========== -->
+    <div class="empty-state">
+        <div class="empty-icon-circle">🔍</div>
+        <div class="empty-title">未找到相关标本</div>
+        <div class="empty-desc">
+            搜索 "<strong>{{ query }}</strong>" 没有找到匹配的标本<br>
+            请尝试更换关键词，或检查输入是否正确
+        </div>
+        <div class="empty-suggestions">
+            <a href="{{ url_for('main.search', q='硅藻') }}">硅藻</a>
+            <a href="{{ url_for('main.search', q='绿藻') }}">绿藻</a>
+            <a href="{{ url_for('main.search', q='蓝藻') }}">蓝藻</a>
+            <a href="{{ url_for('main.search', q='甲藻') }}">甲藻</a>
+            <a href="{{ url_for('main.search', q='轮虫') }}">轮虫</a>
+            <a href="{{ url_for('main.index') }}" class="primary-suggestion">浏览全部</a>
+        </div>
+    </div>
+    {% endif %}
+
+</div><!-- /page-wrapper -->
+
+{% endblock %}

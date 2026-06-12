@@ -1,0 +1,662 @@
+{% extends "main/base.html" %}
+
+{% block title %}黄河口水质水生态监测中心电子标本馆{% endblock %}
+
+{% block styles %}
+/* ============================================================
+   Page Layout
+   ============================================================ */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.page-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================================
+   Hero Banner — 水下光效
+   ============================================================ */
+.hero {
+    margin-top: var(--header-h);
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background: url("{{ banner_image_url }}") center center / cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Uniform overlay — keeps search text readable on banner image */
+.hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10,42,56,.35);
+    z-index: 1;
+}
+
+/* Clip hero bottom to wave shape — seamless blend with cream body */
+.hero {
+    clip-path: url(#heroWaveClip);
+}
+
+/* Floating caustic light beams on hero */
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+        radial-gradient(ellipse 500px 300px at 25% 30%, rgba(77,184,176,.15) 0%, transparent 60%),
+        radial-gradient(ellipse 400px 250px at 70% 60%, rgba(196,148,58,.10) 0%, transparent 50%);
+    pointer-events: none;
+    animation: heroCaustic 8s ease-in-out infinite alternate;
+}
+
+@keyframes heroCaustic {
+    0%   { opacity: .6; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Hero content */
+.hero-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    max-width: 700px;
+    padding: 0 24px;
+}
+
+/* Search bar — slim glass pill */
+.search-pill {
+    display: flex;
+    align-items: stretch;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 50px;
+    overflow: hidden;
+    transition: all .35s var(--ease-smooth);
+    box-shadow: 0 4px 32px rgba(0,0,0,.2);
+}
+
+.search-pill:focus-within {
+    background: rgba(255,255,255,.18);
+    border-color: rgba(77,184,176,.5);
+    box-shadow: 0 4px 40px rgba(0,0,0,.3), 0 0 60px rgba(23,127,127,.15);
+}
+
+.search-pill input {
+    width: 440px;
+    padding: 10px 22px;
+    font-size: 14px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+}
+
+.search-pill input::placeholder {
+    color: rgba(255,255,255,.4);
+}
+
+.search-pill button {
+    padding: 10px 26px;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    color: #fff;
+    cursor: pointer;
+    transition: all .3s var(--ease-smooth);
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.search-pill button:hover {
+    background: linear-gradient(135deg, #199a9a 0%, #128080 100%);
+}
+
+
+/* ============================================================
+   Categories Section
+   ============================================================ */
+.categories-section {
+    padding: 0 44px 70px;
+    position: relative;
+    z-index: 1;
+}
+
+.categories-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    width: 90%;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+/* Category Card — inspired by specimen display cases */
+.category-card {
+    position: relative;
+    flex: 0 0 calc(20% - 19.2px);  /* 5 per row — gap 24px × 4/5 = 19.2px */
+    height: 340px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    /* Frame effect */
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    transition: all .4s var(--ease-spring);
+    border: 1px solid rgba(0,0,0,.06);
+}
+
+.category-card:hover {
+    transform: translateY(-12px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    border-color: rgba(23,127,127,.2);
+}
+
+/* Card image */
+.card-img-wrap {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.card-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s var(--ease-smooth);
+}
+
+.category-card:hover .card-bg-img {
+    transform: scale(1.08);
+}
+
+.card-bg-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(160deg,
+        var(--deep-teal) 0%,
+        #0d4f5a 40%,
+        var(--teal) 100%);
+    transition: transform .6s var(--ease-smooth);
+}
+
+.category-card:hover .card-bg-placeholder {
+    transform: scale(1.08);
+}
+
+/* Card overlay — deeper at bottom for text readability */
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+        rgba(10,42,56,.15) 0%,
+        rgba(10,42,56,.05) 30%,
+        rgba(10,42,56,.45) 60%,
+        rgba(10,42,56,.82) 85%,
+        rgba(10,42,56,.92) 100%);
+    z-index: 1;
+    transition: background .35s;
+}
+
+.category-card:hover .card-overlay {
+    background: linear-gradient(180deg,
+        rgba(10,42,56,.25) 0%,
+        rgba(10,42,56,.10) 30%,
+        rgba(10,42,56,.55) 60%,
+        rgba(10,42,56,.88) 100%);
+}
+
+/* Card content */
+.card-content {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 2;
+    padding: 28px 24px 24px;
+    color: #fff;
+}
+
+.card-name-zh {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+    text-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+.card-name-en {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    opacity: .75;
+}
+
+.card-count-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    box-shadow: 0 0 8px rgba(77,184,176,.6);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: .7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Arrow indicator */
+.card-arrow {
+    position: absolute;
+    right: 20px;
+    bottom: 28px;
+    z-index: 2;
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,.10);
+    backdrop-filter: blur(6px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    border: 1px solid rgba(255,255,255,.12);
+    transition: all .3s var(--ease-smooth);
+}
+
+.category-card:hover .card-arrow {
+    background: var(--teal);
+    border-color: var(--teal);
+    transform: translateX(4px);
+    box-shadow: 0 0 20px rgba(23,127,127,.4);
+}
+
+/* Card number badge — top right */
+.card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 3;
+    background: rgba(255,255,255,.15);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+/* ============================================================
+   Empty State
+   ============================================================ */
+.empty-categories {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-3);
+}
+.empty-categories .empty-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    opacity: .3;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+/* ---- Tablet portrait & small laptops ---- */
+@media (max-width: 768px) {
+    .hero {
+        height: 150px;
+    }
+    .search-pill input {
+        width: 260px;
+        padding: 9px 16px;
+        font-size: 13px;
+    }
+    .search-pill button {
+        padding: 9px 18px;
+        font-size: 13px;
+        letter-spacing: 1px;
+    }
+    .categories-section {
+        padding: 0 20px 60px;
+    }
+    .categories-grid {
+        gap: 16px;
+        width: 94%;
+    }
+    .category-card {
+        flex: 0 0 calc(33.333% - 11px);  /* 3 per row — gap 16px × 2/3 ≈ 11px */
+        height: 280px;
+    }
+    .card-name-zh {
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+    .section-title {
+        font-size: 24px;
+    }
+}
+
+/* ---- Tablet landscape: force 3 columns to avoid 4+1 ---- */
+@media (min-width: 769px) and (max-width: 1099px) {
+    .categories-grid {
+        gap: 24px;
+        width: 88%;
+    }
+    .category-card {
+        flex: 0 0 calc(33.333% - 16px);  /* 3 per row — gap 24px × 2/3 = 16px */
+        height: 320px;
+    }
+    .card-name-zh {
+        font-size: 22px;
+    }
+}
+
+/* ---- Wide tablet / small laptop: 5 in one row ---- */
+@media (min-width: 1100px) and (max-width: 1399px) {
+    .categories-grid {
+        gap: 20px;
+        width: 92%;
+    }
+    .category-card {
+        flex: 0 0 calc(20% - 16px);  /* 5 per row — gap 20px × 4/5 = 16px */
+        height: 310px;
+    }
+    .card-name-zh {
+        font-size: 22px;
+    }
+}
+
+/* ============================================================
+   Large Screen
+   ============================================================ */
+@media (min-width: 1600px) {
+    .hero {
+        height: 240px;
+    }
+    .search-pill input {
+        width: 500px;
+        font-size: 15px;
+        padding: 12px 24px;
+    }
+    .search-pill button {
+        font-size: 16px;
+        padding: 14px 34px;
+    }
+    .categories-grid {
+        gap: 32px;
+    }
+    .category-card {
+        flex: 0 0 calc(20% - 26px);  /* 5 per row — gap 32px × 4/5 ≈ 26px */
+        height: 380px;
+    }
+    .card-name-zh {
+        font-size: 26px;
+    }
+}
+
+/* ============================================================
+   Phone (< 480px)
+   ============================================================ */
+@media (max-width: 480px) {
+    .hero {
+        height: 130px;
+    }
+    .hero-content {
+        padding: 0 16px;
+    }
+    .search-pill {
+        border-radius: 32px;
+    }
+    .search-pill input {
+        width: 180px;
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+    .search-pill button {
+        padding: 8px 14px;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    .categories-section {
+        padding: 0 12px 48px;
+    }
+    .categories-grid {
+        gap: 12px;
+        width: 96%;
+    }
+    .category-card {
+        flex: 0 0 calc(50% - 6px);
+        max-width: none;
+        height: 220px;
+    }
+    .card-name-zh {
+        font-size: 17px;
+        letter-spacing: 1px;
+    }
+    .card-badge {
+        top: 10px;
+        right: 10px;
+        font-size: 10px;
+        padding: 3px 10px;
+    }
+    .card-content {
+        padding: 20px 16px 16px;
+    }
+    .card-arrow {
+        width: 32px;
+        height: 32px;
+        right: 12px;
+        bottom: 20px;
+        font-size: 14px;
+    }
+    .section-title {
+        font-size: 20px;
+    }
+    .section-eyebrow {
+        font-size: 10px;
+        letter-spacing: 2px;
+    }
+    .section-subtitle {
+        font-size: 13px;
+        margin-bottom: 28px;
+    }
+}
+
+/* ============================================================
+   Section Header — Museum Wing Entrance
+   ============================================================ */
+.section-header {
+    text-align: center;
+    padding: 28px 0 0;
+    animation: headerEntrance .75s var(--ease-smooth) both;
+}
+@keyframes headerEntrance {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Title — monumental display serif with wide breath */
+.section-title {
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--abyss);
+    letter-spacing: 8px;
+    line-height: 1.15;
+    text-shadow: 0 1px 2px rgba(10,42,56,.06);
+}
+
+/* Ornament — ripple lines with gold specimen pin */
+.section-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 22px auto 0;
+    height: 20px;
+}
+.section-ornament .ripple-line {
+    display: block;
+    width: 64px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal-light) 50%, transparent);
+    border-radius: 1px;
+    opacity: .5;
+}
+.section-ornament .dot {
+    display: block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 10px rgba(196,148,58,.45), 0 0 2px rgba(196,148,58,.7);
+    flex-shrink: 0;
+    animation: pinPulse 3s ease-in-out infinite;
+}
+@keyframes pinPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(196,148,58,.45), 0 0 2px rgba(196,148,58,.7); }
+    50%      { box-shadow: 0 0 18px rgba(196,148,58,.65), 0 0 6px rgba(196,148,58,.9); }
+}
+
+/* Subtitle — curator's whisper */
+.section-subtitle {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--text-3);
+    margin-top: 16px;
+    margin-bottom: 52px;
+    letter-spacing: 1.5px;
+    opacity: .7;
+}
+
+/* ---- Phone adjustments ---- */
+@media (max-width: 480px) {
+    .section-title {
+        font-size: 22px;
+        letter-spacing: 4px;
+    }
+    .section-ornament .ripple-line {
+        width: 40px;
+    }
+    .section-ornament {
+        gap: 8px;
+        margin: 16px auto 0;
+    }
+    .section-subtitle {
+        font-size: 12px;
+        letter-spacing: 1px;
+        margin-bottom: 32px;
+    }
+}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-wrapper">
+
+    <!-- ========== Hero Banner ========== -->
+    <!-- SVG clipPath: cuts hero bottom to match the wave curve -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <clipPath id="heroWaveClip" clipPathUnits="objectBoundingBox">
+                <path d="M0,0 L1,0 L1,0.778 C0.889,0.856 0.778,0.700 0.667,0.789 C0.556,0.878 0.444,0.711 0.333,0.811 C0.222,0.911 0.111,0.744 0,0.844 Z"/>
+            </clipPath>
+        </defs>
+    </svg>
+    <div class="hero">
+        <div class="hero-content">
+            <form class="search-pill" action="{{ url_for('main.search') }}" method="get"
+                  onsubmit="var q=this.q.value.trim();if(!q){alert('请输入关键词');return false;}if(q.length<2){alert('关键词至少需要2个字符');return false;}">
+                <input type="text" name="q" placeholder="搜索标本名称、编号或分类关键词..." minlength="2">
+                <button type="submit">搜 索</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== Categories ========== -->
+    <div class="section-header">
+        <div class="section-title">标本馆藏分类</div>
+        <div class="section-ornament">
+            <i class="ripple-line"></i>
+            <span class="dot"></span>
+            <i class="ripple-line"></i>
+        </div>
+        <div class="section-subtitle">点击分类卡片，探索水生生物多样性</div>
+    </div>
+
+    <div class="categories-section">
+        {% if categories %}
+        <div class="categories-grid">
+            {% for cat in categories %}
+            <a href="{{ url_for('main.specimen_list', category_id=cat.id) }}" class="category-card">
+                {% if cat.id in category_images %}
+                <div class="card-img-wrap">
+                    <img class="card-bg-img" src="{{ category_images[cat.id] }}" alt="{{ cat.name }}" loading="lazy">
+                </div>
+                {% else %}
+                <div class="card-img-wrap">
+                    <div class="card-bg-placeholder"></div>
+                </div>
+                {% endif %}
+
+                <div class="card-overlay"></div>
+
+                <div class="card-badge">{{ cat.code or '' }}</div>
+
+                <div class="card-content">
+                    <div class="card-name-zh">{{ cat.name }}</div>
+                    {% if cat.description %}
+                    <div class="card-name-en">{{ cat.description|truncate(40, true, '...') }}</div>
+                    {% endif %}
+                    <div class="card-meta">
+                        <span class="card-count-dot"></span>
+                        <span>{{ cat.specimens|length }} 件标本</span>
+                    </div>
+                </div>
+
+                <div class="card-arrow">→</div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-categories">
+            <div class="empty-icon">📭</div>
+            <p>暂无标本分类，请联系管理员配置</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div><!-- /page-wrapper -->
+
+{% endblock %}

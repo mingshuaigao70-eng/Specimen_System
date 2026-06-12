@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>页面配置</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<style>
+:root {
+  --primary: #2c5f7c;
+  --accent: #27ae60;
+  --bg: #f5f7fa;
+  --card-bg: #fff;
+  --text: #303133;
+  --text-secondary: #909399;
+  --border: #e8ecf1;
+  --shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  padding: 24px;
+}
+
+/* ========== Flash Toast ========== */
+.flash-toast {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+}
+
+.flash-toast .alert {
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  border: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  animation: slideIn .3s ease;
+  margin: 0;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.alert-success { background: #e8f8f0; color: #155724; border-left: 4px solid #27ae60; }
+.alert-error   { background: #fef0f0; color: #721c24; border-left: 4px solid #e74c3c; }
+.alert-warning { background: #fef9e7; color: #856404; border-left: 4px solid #f39c12; }
+
+/* ========== Page Header ========== */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a3a4a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-title .title-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2c5f7c, #1abc9c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+}
+
+/* ========== Card ========== */
+.card-wrap {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  max-width: 900px;
+}
+
+.card-header-bar {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* ========== Form ========== */
+.form-body {
+  padding: 24px;
+}
+
+.form-section {
+  margin-bottom: 28px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a3a4a;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--accent);
+  letter-spacing: .5px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #606266;
+  margin-bottom: 6px;
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+  padding: 9px 14px;
+  font-size: 15px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.form-control:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 3px rgba(64,158,255,.12);
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+.mb-row {
+  margin-bottom: 16px;
+}
+
+/* ========== Buttons ========== */
+.form-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: #fafbfc;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-save {
+  padding: 9px 28px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-save:hover {
+  background: #219a52;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(39,174,96,.3);
+}
+</style>
+</head>
+<body>
+
+<!-- Flash Toast -->
+<div class="flash-toast" id="flashToast">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-title">
+    <div class="title-icon">&#9881;</div>
+    页面配置
+  </div>
+</div>
+
+<!-- Form Card -->
+<div class="card-wrap">
+  <div class="card-header-bar">配置首页及关于我们页面内容</div>
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-body">
+
+      <!-- 首页横幅背景图 -->
+      <div class="form-section">
+        <div class="section-label">首页横幅背景图</div>
+        {% set banner_img = content.get('landing.banner_image', '') %}
+        {% if banner_img %}
+        <div class="mb-row">
+          <label class="form-label">当前横幅图</label>
+          <div><img src="{{ url_for('static', filename='images/public/' + banner_img.split('/')[-1]) }}" style="max-width:300px;border-radius:8px;border:1px solid #dcdfe6;"></div>
+        </div>
+        {% endif %}
+        <div class="mb-row">
+          <label class="form-label">上传新横幅图（留空则不替换，支持 jpg/png）</label>
+          <input type="file" name="banner_image" class="form-control" accept=".jpg,.jpeg,.png">
+        </div>
+      </div>
+
+      <!-- 关于我们页面 -->
+      <div class="form-section">
+        <div class="section-label">关于我们页面</div>
+        <div class="mb-row">
+          <label class="form-label">页面横幅标题</label>
+          <input type="text" name="about.banner_title" class="form-control" value="{{ content.get('about.banner_title', '') }}">
+        </div>
+        <div class="mb-row">
+          <label class="form-label">正文内容（每空行 = 一个段落）</label>
+          <textarea name="about.content_text" class="form-control" rows="10">{{ content.get('about.content_text', '') }}</textarea>
+        </div>
+      </div>
+
+      <!-- 联系信息 -->
+      <div class="form-section">
+        <div class="section-label">联系信息</div>
+        <div class="mb-row">
+          <label class="form-label">单位名称</label>
+          <input type="text" name="about.org_name" class="form-control" value="{{ content.get('about.org_name', '') }}">
+        </div>
+        <div class="mb-row">
+          <label class="form-label">联系人</label>
+          <input type="text" name="about.contact_person" class="form-control" value="{{ content.get('about.contact_person', '') }}">
+        </div>
+        <div class="mb-row">
+          <label class="form-label">地址</label>
+          <input type="text" name="about.address" class="form-control" value="{{ content.get('about.address', '') }}">
+        </div>
+        <div class="mb-row">
+          <label class="form-label">邮编</label>
+          <input type="text" name="about.postal_code" class="form-control" value="{{ content.get('about.postal_code', '') }}">
+        </div>
+        <div class="mb-row">
+          <label class="form-label">邮箱</label>
+          <input type="text" name="about.email" class="form-control" value="{{ content.get('about.email', '') }}">
+        </div>
+        {% set map_img = content.get('about.map_image', '') %}
+        {% if map_img %}
+        <div class="mb-row">
+          <label class="form-label">当前地图图片</label>
+          <div><img src="{{ url_for('static', filename='images/public/' + map_img.split('/')[-1]) }}" style="max-width:300px;border-radius:8px;border:1px solid #dcdfe6;"></div>
+        </div>
+        {% endif %}
+        <div class="mb-row">
+          <label class="form-label">上传地图图片（留空则不替换，支持 jpg/png）</label>
+          <input type="file" name="map_image" class="form-control" accept=".jpg,.jpeg,.png">
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-footer">
+      <button type="submit" class="btn-save">保存配置</button>
+    </div>
+  </form>
+</div>
+
+<script>
+setTimeout(function() {
+  var toast = document.getElementById('flashToast');
+  if (toast) {
+    var alerts = toast.querySelectorAll('.alert');
+    alerts.forEach(function(el, i) {
+      setTimeout(function() {
+        el.style.transition = 'opacity .4s';
+        el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 400);
+      }, i * 200);
+    });
+  }
+}, 3000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}黄河口水质水生态监测中心电子标本馆{% endblock %}</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/public/danwei_logo.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   「水生万象 / Aqua Archive」 Design System
+   ============================================================ */
+:root {
+    /* ---- Palette ---- */
+    --abyss:      #0a2a38;   /* 深海暗蓝 — 最深的底色 */
+    --deep-teal:  #0d3e54;   /* 深青 — 主导色 */
+    --teal:       #177f7f;   /* 青 — 水面 */
+    --teal-light: #4db8b0;   /* 浅青 — 高亮 */
+    --gold:       #c4943a;   /* 暖金 — 阳光穿过水面 */
+    --gold-light: #e8d5a3;   /* 浅金 — 沉积纹理 */
+    --cream:      #f7f5ef;   /* 奶油白 — 主体背景 */
+    --surface:    #fffefb;   /* 卡片白 */
+    --wave-1:     #eaf4f3;   /* 浅水波纹 */
+    --wave-2:     #dcecea;   /* 中水波纹 */
+
+    /* ---- Text ---- */
+    --text:       #1c2629;
+    --text-2:     #4a585e;
+    --text-3:     #7d8b91;
+    --text-invert:#f2efe6;
+
+    /* ---- Spacing & Shape ---- */
+    --radius:     16px;
+    --radius-sm:  10px;
+    --radius-xs:  6px;
+    --header-h:   64px;
+    --shadow-sm:  0 1px 3px rgba(10,42,56,.06);
+    --shadow:     0 4px 24px rgba(10,42,56,.08);
+    --shadow-lg:  0 12px 48px rgba(10,42,56,.12);
+    --shadow-glow:0 0 40px rgba(23,127,127,.15);
+
+    /* ---- Fonts ---- */
+    --font-display: "Noto Serif SC", "Source Han Serif SC", Georgia, "Songti SC", serif;
+    --font-body:    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-mono:    "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+    /* ---- Transitions ---- */
+    --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+html {
+    overflow-x: hidden;
+}
+body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+}
+
+/* ============================================================
+   Animated Background Texture (global)
+   ============================================================ */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+        /* Water caustic-like gradient mesh */
+        radial-gradient(ellipse 1200px 800px at 15% 10%, rgba(23,127,127,.04) 0%, transparent 60%),
+        radial-gradient(ellipse 900px 600px at 80% 30%, rgba(196,148,58,.03) 0%, transparent 55%),
+        radial-gradient(ellipse 1000px 700px at 50% 80%, rgba(77,184,176,.04) 0%, transparent 50%),
+        var(--cream);
+    pointer-events: none;
+}
+
+/* Subtle grain overlay */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: .025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+    pointer-events: none;
+}
+
+/* ============================================================
+   Header — 透明玻璃质感
+   ============================================================ */
+header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    /* Glass morphism */
+    background: rgba(10,42,56,.88);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    transition: background .3s var(--ease-smooth);
+}
+
+/* Subtle underwater light beam on header */
+header::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(77,184,176,.06) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.unit-logo {
+    height: 38px;
+    width: 38px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1.5px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 20px rgba(77,184,176,.15);
+}
+
+.site-title {
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-invert);
+    opacity: .92;
+    white-space: nowrap;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 32px;
+}
+
+.nav-link {
+    color: rgba(255,255,255,.65);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 24px;
+    transition: all .25s var(--ease-smooth);
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,.06);
+}
+
+.nav-link.active {
+    color: #fff;
+    background: rgba(255,255,255,.10);
+    font-weight: 600;
+}
+
+/* Active indicator — underwater glow dot */
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    box-shadow: 0 0 8px rgba(77,184,176,.6);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,.06);
+    padding: 6px 16px;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,.06);
+    color: rgba(255,255,255,.8);
+    font-size: 16px;
+}
+
+.user-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,.2);
+}
+
+.header-right a {
+    color: rgba(255,255,255,.68);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 20px;
+    transition: all .25s var(--ease-smooth);
+    border: 1px solid rgba(255,255,255,.10);
+}
+
+.header-right a:hover {
+    color: #fff;
+    background: rgba(255,255,255,.08);
+    border-color: rgba(255,255,255,.2);
+}
+
+.header-right a.admin-link {
+    border-color: rgba(196,148,58,.3);
+    color: var(--gold-light);
+}
+
+.header-right a.admin-link:hover {
+    border-color: var(--gold);
+    background: rgba(196,148,58,.1);
+}
+
+	/* ============================================================
+	   Hamburger Menu Button — mobile only
+	   ============================================================ */
+	.hamburger-btn {
+	    display: none;
+	    flex-direction: column;
+	    justify-content: center;
+	    align-items: center;
+	    gap: 5px;
+	    width: 44px;
+	    height: 44px;
+	    background: rgba(255,255,255,.08);
+	    border: 1px solid rgba(255,255,255,.12);
+	    border-radius: 10px;
+	    cursor: pointer;
+	    padding: 0;
+	    z-index: 200;
+	    transition: all .25s var(--ease-smooth);
+	    flex-shrink: 0;
+	}
+	.hamburger-btn:hover {
+	    background: rgba(255,255,255,.14);
+	    border-color: rgba(255,255,255,.25);
+	}
+	.hamburger-btn span {
+	    display: block;
+	    width: 22px;
+	    height: 2px;
+	    background: rgba(255,255,255,.8);
+	    border-radius: 1px;
+	    transition: all .3s var(--ease-spring);
+	    transform-origin: center;
+	}
+	.hamburger-btn.active span:nth-child(1) {
+	    transform: translateY(7px) rotate(45deg);
+	}
+	.hamburger-btn.active span:nth-child(2) {
+	    opacity: 0;
+	    transform: scaleX(0);
+	}
+	.hamburger-btn.active span:nth-child(3) {
+	    transform: translateY(-7px) rotate(-45deg);
+	}
+
+	/* ============================================================
+	   Mobile Menu Overlay
+	   ============================================================ */
+	.mobile-nav-overlay {
+	    position: fixed;
+	    inset: 0;
+	    z-index: 150;
+	    background: rgba(10,42,56,.7);
+	    backdrop-filter: blur(12px);
+	    -webkit-backdrop-filter: blur(12px);
+	    opacity: 0;
+	    pointer-events: none;
+	    transition: opacity .35s var(--ease-smooth);
+	}
+	.mobile-nav-overlay.active {
+	    opacity: 1;
+	    pointer-events: auto;
+	}
+
+	.mobile-nav-panel {
+	    position: fixed;
+	    top: 0;
+	    right: -320px;
+	    width: 300px;
+	    max-width: 82vw;
+	    height: 100vh;
+	    z-index: 151;
+	    background: linear-gradient(180deg,
+	        rgba(10,42,56,.98) 0%,
+	        rgba(13,62,84,.97) 100%);
+	    backdrop-filter: blur(30px);
+	    -webkit-backdrop-filter: blur(30px);
+	    border-left: 1px solid rgba(255,255,255,.08);
+	    padding: 88px 28px 40px;
+	    display: flex;
+	    flex-direction: column;
+	    gap: 6px;
+	    transition: right .4s var(--ease-spring);
+	    overflow-y: auto;
+	}
+	.mobile-nav-panel.active {
+	    right: 0;
+	}
+
+	.mobile-nav-panel a {
+	    display: flex;
+	    align-items: center;
+	    gap: 12px;
+	    padding: 14px 20px;
+	    font-size: 17px;
+	    font-weight: 500;
+	    color: rgba(255,255,255,.7);
+	    text-decoration: none;
+	    border-radius: 12px;
+	    transition: all .25s var(--ease-smooth);
+	    letter-spacing: .5px;
+	}
+	.mobile-nav-panel a:hover,
+	.mobile-nav-panel a.active {
+	    color: #fff;
+	    background: rgba(255,255,255,.08);
+	}
+	.mobile-nav-panel a.active {
+	    font-weight: 700;
+	    background: rgba(77,184,176,.12);
+	    border: 1px solid rgba(77,184,176,.2);
+	}
+
+	.mobile-nav-divider {
+	    height: 1px;
+	    background: rgba(255,255,255,.06);
+	    margin: 8px 12px;
+	}
+
+	.mobile-nav-user {
+	    display: flex;
+	    align-items: center;
+	    gap: 12px;
+	    padding: 16px 20px;
+	    margin-bottom: 8px;
+	    border-bottom: 1px solid rgba(255,255,255,.08);
+	}
+	.mobile-nav-user .avatar {
+	    width: 42px; height: 42px;
+	    border-radius: 50%;
+	    border: 2px solid rgba(255,255,255,.2);
+	}
+	.mobile-nav-user .info {
+	    display: flex;
+	    flex-direction: column;
+	    gap: 2px;
+	}
+	.mobile-nav-user .name {
+	    font-size: 16px;
+	    font-weight: 600;
+	    color: #fff;
+	}
+	.mobile-nav-user .role {
+	    font-size: 13px;
+	    color: var(--gold-light);
+	}
+
+/* ============================================================
+   Footer — 分层沉积纹理
+   ============================================================ */
+.footer {
+    position: relative;
+    background: linear-gradient(180deg, var(--abyss) 0%, #061a24 100%);
+    color: rgba(242,239,230,.55);
+    text-align: center;
+    padding: 28px 16px 24px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Sediment layer decoration */
+.footer::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0; right: 0;
+    height: 40px;
+    background: linear-gradient(180deg,
+        var(--cream) 0%,
+        rgba(200,190,165,.3) 15%,
+        rgba(10,42,56,.6) 50%,
+        var(--abyss) 100%);
+    pointer-events: none;
+}
+
+.footer-wave {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.footer-wave svg {
+    display: block;
+    width: 100%;
+    height: 40px;
+}
+
+.footer-content {
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+}
+
+.footer-brand {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(242,239,230,.7);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.footer small {
+    display: block;
+    font-size: 12px;
+    opacity: .5;
+    margin-top: 8px;
+    letter-spacing: 1px;
+}
+
+/* ============================================================
+   Shared: Breadcrumb
+   ============================================================ */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-3);
+    margin-bottom: 12px;
+}
+.breadcrumb a {
+    color: var(--teal);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color .2s;
+}
+.breadcrumb a:hover { color: var(--deep-teal); }
+.breadcrumb .sep { color: #c8cdd2; font-size: 11px; }
+
+/* ============================================================
+   Shared: Section Header
+   ============================================================ */
+.section-header {
+    text-align: center;
+    padding: 64px 0 0;
+}
+.section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 18px;
+    border-radius: 20px;
+    background: rgba(23,127,127,.06);
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    border: 1px solid rgba(23,127,127,.10);
+}
+.section-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--abyss);
+    letter-spacing: 2px;
+    line-height: 1.3;
+}
+.section-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px auto 0;
+}
+.section-ornament::before,
+.section-ornament::after {
+    content: '';
+    width: 28px;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, var(--teal));
+    border-radius: 1px;
+}
+.section-ornament::after {
+    background: linear-gradient(90deg, var(--teal), transparent);
+}
+.section-ornament .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 6px rgba(196,148,58,.4);
+}
+.section-subtitle {
+    font-size: 15px;
+    color: var(--text-3);
+    margin-top: 12px;
+    margin-bottom: 48px;
+    letter-spacing: .5px;
+}
+
+/* ============================================================
+   Shared: Buttons
+   ============================================================ */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .3s var(--ease-spring);
+    box-shadow: 0 4px 20px rgba(23,127,127,.25);
+    letter-spacing: 1px;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(23,127,127,.35);
+}
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--deep-teal);
+    background: transparent;
+    border: 1.5px solid var(--deep-teal);
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .25s var(--ease-smooth);
+}
+.btn-outline:hover {
+    background: var(--deep-teal);
+    color: #fff;
+}
+
+/* ============================================================
+   Shared: Glass Card
+   ============================================================ */
+.glass-card {
+    background: rgba(255,255,255,.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.8);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: all .35s var(--ease-smooth);
+}
+.glass-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(23,127,127,.15);
+}
+
+/* ============================================================
+   Modal — 敬请期待
+   ============================================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(10,42,56,.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s var(--ease-smooth);
+}
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-dialog {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg), 0 0 80px rgba(10,42,56,.2);
+    padding: 48px 56px;
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+    transform: translateY(20px) scale(.96);
+    transition: transform .35s var(--ease-spring);
+    position: relative;
+    border: 1px solid rgba(23,127,127,.08);
+}
+.modal-overlay.active .modal-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.modal-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--abyss);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+.modal-text {
+    font-size: 15px;
+    color: var(--text-3);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.modal-close {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 32px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--teal) 0%, #0f6b6b 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all .3s var(--ease-spring);
+    box-shadow: 0 4px 20px rgba(23,127,127,.25);
+}
+.modal-close:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(23,127,127,.35);
+}
+
+
+/* ============================================================
+   Responsive — Mobile Navigation
+   ============================================================ */
+@media (max-width: 900px) {
+    .hamburger-btn {
+        display: flex;
+    }
+    .header-nav {
+        display: none;
+    }
+    .header-right {
+        display: none;
+    }
+    header {
+        padding: 0 16px;
+    }
+    .site-title {
+        font-size: 15px;
+        letter-spacing: 0;
+    }
+    .unit-logo {
+        height: 32px;
+        width: 32px;
+    }
+    .header-left {
+        gap: 10px;
+    }
+}
+
+/* Larger padding for medium-large screens */
+@media (min-width: 1400px) {
+    header {
+        padding: 0 64px;
+    }
+}
+{% block styles %}{% endblock %}
+</style>
+</head>
+<body>
+
+<!-- ========== Header ========== -->
+<header>
+    <div class="header-left">
+        <img src="{{ url_for('static', filename='images/public/danwei_logo.png') }}" alt="单位图标" class="unit-logo" loading="lazy">
+        <div class="site-title">黄河口水质水生态监测中心 · 电子标本馆</div>
+        <nav class="header-nav">
+            <a href="{{ url_for('main.index') }}" class="nav-link {{ 'active' if request.endpoint == 'main.index' }}">首页</a>
+            <a href="#" class="nav-link" onclick="openDataModal(); return false;">数据资源</a>
+            <a href="{{ url_for('main.about') }}" class="nav-link {{ 'active' if request.endpoint == 'main.about' }}">关于我们</a>
+        </nav>
+    </div>
+
+    <div class="header-right">
+        <div class="user-info">
+            <img src="{{ url_for('static', filename='images/public/user_icon.png') }}" alt="用户图标" class="user-icon" loading="lazy">
+            <span>{{ current_user.username }}</span>
+        </div>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-link">配置平台</a>
+        {% endif %}
+        <a href="{{ url_for('auth.logout') }}">退出登录</a>
+    </div>
+
+	    <!-- Hamburger menu button — mobile only -->
+	    <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单" onclick="toggleMobileNav()">
+	        <span></span><span></span><span></span>
+	    </button>
+</header>
+
+	<!-- ========== Mobile Navigation Overlay ========== -->
+	<div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="closeMobileNav()"></div>
+	<div class="mobile-nav-panel" id="mobileNavPanel">
+	    <div class="mobile-nav-user">
+	        <img src="{{ url_for('static', filename='images/public/user_icon.png') }}" alt="用户图标" class="avatar">
+	        <div class="info">
+	            <span class="name">{{ current_user.username }}</span>
+	            {% if current_user.is_admin %}
+	            <span class="role">
+	                {% if current_user.role == 'superadmin' %}超级管理员{% else %}管理员{% endif %}
+	            </span>
+	            {% endif %}
+	        </div>
+	    </div>
+	    <a href="{{ url_for('main.index') }}" class="{{ 'active' if request.endpoint == 'main.index' }}">🏠 首页</a>
+	    <a href="#" onclick="openDataModal(); closeMobileNav(); return false;">📊 数据资源</a>
+	    <a href="{{ url_for('main.about') }}" class="{{ 'active' if request.endpoint == 'main.about' }}">📖 关于我们</a>
+	    <div class="mobile-nav-divider"></div>
+	    {% if current_user.is_admin %}
+	    <a href="{{ url_for('admin.dashboard') }}">⚙️ 配置平台</a>
+	    {% endif %}
+	    <a href="{{ url_for('auth.logout') }}">🚪 退出登录</a>
+	</div>
+
+{% block content %}{% endblock %}
+
+<!-- ========== Footer ========== -->
+<div class="footer">
+    <div class="footer-wave">
+        <svg viewBox="0 0 1440 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,20 C320,0 640,36 960,18 C1280,0 1440,28 1440,28 L1440,40 L0,40 Z"
+                  fill="var(--cream)" />
+        </svg>
+    </div>
+    <div class="footer-content">
+        <div class="footer-brand">&copy; 黄河口水文水资源勘测局</div>
+        黄河口水质水生态监测中心 电子标本馆
+    </div>
+</div>
+
+<!-- ========== Data Modal ========== -->
+<div class="modal-overlay" id="dataModal" onclick="if(event.target===this)closeDataModal();">
+    <div class="modal-dialog">
+        <div class="modal-icon">📊</div>
+        <div class="modal-title">数据资源</div>
+        <div class="modal-text">该功能正在建设中，敬请期待…</div>
+        <button class="modal-close" onclick="closeDataModal()">确 定</button>
+    </div>
+</div>
+
+<script>
+function openDataModal() {
+    document.getElementById('dataModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeDataModal() {
+    document.getElementById('dataModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeDataModal(); closeMobileNav(); }
+});
+
+	// ========== Mobile Navigation ==========
+	function toggleMobileNav() {
+	    var overlay = document.getElementById('mobileNavOverlay');
+	    var panel = document.getElementById('mobileNavPanel');
+	    var btn = document.getElementById('hamburgerBtn');
+	    var isActive = panel.classList.contains('active');
+	    if (isActive) {
+	        closeMobileNav();
+	    } else {
+	        overlay.classList.add('active');
+	        panel.classList.add('active');
+	        btn.classList.add('active');
+	        document.body.style.overflow = 'hidden';
+	    }
+	}
+	function closeMobileNav() {
+	    var overlay = document.getElementById('mobileNavOverlay');
+	    var panel = document.getElementById('mobileNavPanel');
+	    var btn = document.getElementById('hamburgerBtn');
+	    overlay.classList.remove('active');
+	    panel.classList.remove('active');
+	    btn.classList.remove('active');
+	    document.body.style.overflow = '';
+	}
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>批量上传标本</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+:root {
+  --primary: #2c5f7c;
+  --accent: #27ae60;
+  --warm: #b8934e;
+  --bg: #f0f2f5;
+  --card: #fff;
+  --text: #303133;
+  --text-secondary: #606266;
+  --border: #dcdfe6;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+
+html, body {
+    margin:0; padding:0; min-height:100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    color: var(--text);
+}
+
+.container-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px 40px;
+}
+
+/* ====== Page Title ====== */
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a3a4a;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ====== Step Guide ====== */
+.steps {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.step-card {
+    flex: 1;
+    min-width: 150px;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    border-top: 3px solid var(--primary);
+}
+
+.step-num {
+    width: 28px; height: 28px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.step-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ====== Sections ====== */
+.section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+
+.section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a3a4a;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f2f5;
+}
+
+/* ====== Upload Zone ====== */
+.upload-zone {
+    border: 2px dashed #d0d7de;
+    border-radius: var(--radius);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    background: #fafbfc;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--primary);
+    background: #ecf5ff;
+}
+
+.upload-zone .icon {
+    font-size: 44px;
+    margin-bottom: 12px;
+    opacity: .6;
+}
+
+.upload-zone .text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.upload-zone .hint {
+    font-size: 12px;
+    color: #b0b8c1;
+}
+
+.upload-zone input[type="file"] {
+    display: none;
+}
+
+.selected-file {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #ecf5ff;
+    border-radius: var(--radius-sm);
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--primary);
+}
+
+.selected-file .file-icon { font-size: 20px; }
+.selected-file .remove-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #f56c6c;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* ====== Buttons ====== */
+.btn-primary-custom {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-primary-custom:hover { background: #1a3a4a; }
+.btn-primary-custom:disabled {
+    background: #b0bec5;
+    cursor: not-allowed;
+}
+
+.btn-accent {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.btn-accent:hover { background: #219a52; }
+.btn-accent:disabled {
+    background: #b0bec5;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    background: #fff;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-sm);
+    padding: 9px 24px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+.btn-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* ====== Progress ====== */
+.progress-container {
+    display: none;
+    margin-top: 16px;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+/* ====== Results Table ====== */
+.result-section {
+    display: none;
+}
+
+.summary-bar {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.summary-item {
+    font-size: 14px;
+    font-weight: 500;
+}
+.summary-item.ok { color: #2e7d32; }
+.summary-item.err { color: #c62828; }
+.summary-item.warn { color: #e67e22; }
+
+.sheet-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.sheet-summary-table th {
+    background: #f5f7fa;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+}
+
+.sheet-summary-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: auto;
+}
+
+.result-table th {
+    background: #f5f7fa;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+}
+
+.result-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0f2f5;
+    vertical-align: top;
+}
+
+.result-table th.col-sheet { min-width: 90px; }
+.result-table th.col-seq { min-width: 50px; width: 50px; text-align: center; }
+.result-table td.col-seq { text-align: center; }
+.result-table th.col-number { min-width: 160px; }
+.result-table th.col-cname { min-width: 100px; }
+.result-table th.col-lname { min-width: 140px; }
+.result-table th.col-status { min-width: 80px; width: 80px; text-align: center; }
+.result-table td.col-status { text-align: center; white-space: nowrap; }
+.result-table th.col-errors { min-width: 200px; }
+
+.result-table tr.row-ok { background: #f6fef6; }
+.result-table tr.row-err { background: #fef6f6; }
+
+.badge-status {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.badge-ok { background: #e8f5e9; color: #2e7d32; }
+.badge-err { background: #ffebee; color: #c62828; }
+
+.error-list {
+    margin: 0; padding: 0;
+    list-style: none;
+    font-size: 12px;
+    color: #c62828;
+}
+
+.error-list li::before { content: '• '; }
+
+.sheet-error-box {
+    background: #fef9e7;
+    border: 1px solid #f0d060;
+    border-left: 4px solid #f39c12;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #856404;
+}
+
+.spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ====== Flash ====== */
+.flash-messages { margin-bottom: 16px; }
+.flash-messages .alert {
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+}
+.alert-success { background: #e8f5e9; color: #2e7d32; }
+.alert-error   { background: #fef0f0; color: #c62828; }
+.alert-info    { background: #e3f2fd; color: #1565c0; }
+</style>
+</head>
+<body>
+
+<div class="container-main">
+
+    <div class="page-title">
+        <span>&#128228;</span> 批量上传标本
+    </div>
+
+    <!-- ====== Flash Messages ====== -->
+    <div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    </div>
+
+    <!-- ====== Step Guide ====== -->
+    <div class="steps">
+        <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-text">下载模板 Excel<br><a href="{{ url_for('admin.batch_upload_template') }}" style="color:var(--primary);font-weight:600;">点击下载模板</a></div>
+        </div>
+        <div class="step-card" style="border-top-color: var(--accent);">
+            <div class="step-num" style="background:var(--accent);">2</div>
+            <div class="step-text">每个 Sheet 填写<br>一个大类的标本数据</div>
+        </div>
+        <div class="step-card" style="border-top-color: var(--warm);">
+            <div class="step-num" style="background:var(--warm);">3</div>
+            <div class="step-text">Excel + 图片<br>打包为 ZIP 上传</div>
+        </div>
+        <div class="step-card" style="border-top-color: #8e44ad;">
+            <div class="step-num" style="background:#8e44ad;">4</div>
+            <div class="step-text">系统校验后<br>确认导入</div>
+        </div>
+    </div>
+
+    <!-- ====== Upload Section ====== -->
+    <div class="section" id="upload-section">
+        <div class="section-title">&#128193; 上传 ZIP 文件</div>
+
+        <div class="upload-zone" id="upload-zone">
+            <div class="icon">&#128230;</div>
+            <div class="text">拖拽 ZIP 文件到此处，或点击选择文件</div>
+            <div class="hint">支持 .zip 格式，最大 100MB。ZIP 内需包含 .xlsx 文件和所有标本图片。</div>
+            <input type="file" id="file-input" accept=".zip">
+        </div>
+
+        <div class="selected-file" id="selected-file">
+            <span class="file-icon">&#128206;</span>
+            <span id="file-name"></span>
+            <span style="color:#909399;font-size:12px;" id="file-size"></span>
+            <button class="remove-btn" id="remove-file" title="移除">&times;</button>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-primary-custom" id="btn-validate" disabled>
+                开始校验
+            </button>
+        </div>
+
+        <div class="progress-container" id="progress-container">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width:100%"></div>
+            </div>
+            <div style="text-align:center;margin-top:8px;font-size:13px;color:var(--text-secondary);">
+                正在解析并校验数据...
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== Validation Results Section ====== -->
+    <div class="section result-section" id="validate-section">
+        <div class="section-title">&#128269; 校验结果</div>
+
+        <div id="sheet-errors-container"></div>
+
+        <div class="summary-bar" id="validate-summary"></div>
+
+        <div style="overflow-x:auto;">
+            <table class="result-table" id="validate-table">
+                <thead>
+                    <tr>
+                        <th class="col-sheet">工作表</th>
+                        <th class="col-seq">序号</th>
+                        <th class="col-number">标本编号</th>
+                        <th class="col-cname">中文名</th>
+                        <th class="col-lname">拉丁名</th>
+                        <th class="col-status">状态</th>
+                        <th class="col-errors">校验信息</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-accent" id="btn-import" disabled>
+                确认导入 <span id="btn-import-count"></span>
+            </button>
+            <button class="btn-outline" id="btn-cancel">
+                取消，重新上传
+            </button>
+        </div>
+    </div>
+
+    <!-- ====== Import Results Section ====== -->
+    <div class="section result-section" id="import-section">
+        <div class="section-title">&#9989; 导入结果</div>
+
+        <div class="summary-bar" id="import-summary"></div>
+
+        <div id="import-failed-container" style="overflow-x:auto;"></div>
+
+        <div class="btn-group">
+            <a href="{{ url_for('admin.batch_upload') }}" class="btn-primary-custom">继续上传</a>
+            <a href="{{ url_for('admin.manage_specimens') }}" class="btn-outline">查看标本列表</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ========== CSRF Token ==========
+const csrfToken = '{{ csrf_token() }}';
+
+// ========== DOM Elements ==========
+const fileInput = document.getElementById('file-input');
+const uploadZone = document.getElementById('upload-zone');
+const selectedFileDiv = document.getElementById('selected-file');
+const fileNameSpan = document.getElementById('file-name');
+const fileSizeSpan = document.getElementById('file-size');
+const removeFileBtn = document.getElementById('remove-file');
+const btnValidate = document.getElementById('btn-validate');
+const progressContainer = document.getElementById('progress-container');
+
+const validateSection = document.getElementById('validate-section');
+const validateTableBody = document.getElementById('validate-table').querySelector('tbody');
+const validateSummary = document.getElementById('validate-summary');
+const sheetErrorsContainer = document.getElementById('sheet-errors-container');
+const btnImport = document.getElementById('btn-import');
+const btnImportCount = document.getElementById('btn-import-count');
+const btnCancel = document.getElementById('btn-cancel');
+
+const importSection = document.getElementById('import-section');
+const importSummary = document.getElementById('import-summary');
+const importFailedContainer = document.getElementById('import-failed-container');
+
+let currentSessionId = null;
+let selectedFile = null;  // 存储选中的文件（拖拽或点击选择），避免拖拽后 fileInput.files 为空
+
+// ========== File Selection ==========
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) handleFile(files[0]);
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+});
+
+function handleFile(file) {
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+        showPageError('仅支持 .zip 格式文件');
+        return;
+    }
+    const maxSize = 100 * 1024 * 1024; // 100MB
+    if (file.size > maxSize) {
+        showPageError('文件过大，最大支持 100MB');
+        return;
+    }
+    selectedFile = file;  // 保存文件引用
+    fileNameSpan.textContent = file.name;
+    fileSizeSpan.textContent = '(' + formatFileSize(file.size) + ')';
+    selectedFileDiv.style.display = 'flex';
+    btnValidate.disabled = false;
+    uploadZone.style.opacity = '0.5';
+
+    // 重置结果区域
+    validateSection.style.display = 'none';
+    importSection.style.display = 'none';
+}
+
+removeFileBtn.addEventListener('click', () => {
+    resetFileSelection();
+});
+
+function resetFileSelection() {
+    fileInput.value = '';
+    selectedFile = null;
+    selectedFileDiv.style.display = 'none';
+    btnValidate.disabled = true;
+    uploadZone.style.opacity = '1';
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+// ========== 页面内错误提示 ==========
+function showPageError(msg) {
+    const div = document.createElement('div');
+    div.className = 'flash-messages';
+    div.innerHTML = '<div class="alert alert-error">' + escapeHtml(msg) + '</div>';
+    const container = document.querySelector('.container-main');
+    const first = container.querySelector('.flash-messages');
+    if (first) first.replaceWith(div); else container.insertBefore(div, container.firstChild);
+}
+
+// ========== Validate ==========
+btnValidate.addEventListener('click', () => {
+    if (!selectedFile) {
+        showPageError('请先选择 ZIP 文件');
+        return;
+    }
+    console.log('[批量上传] 开始校验，文件:', selectedFile.name, '大小:', selectedFile.size);
+
+    btnValidate.disabled = true;
+    btnValidate.textContent = '校验中...';
+    progressContainer.style.display = 'block';
+    validateSection.style.display = 'none';
+    importSection.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('zip_file', selectedFile);
+    formData.append('csrf_token', csrfToken);
+
+    fetch('{{ url_for("admin.batch_upload_validate") }}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': csrfToken }
+    })
+    .then(response => {
+        console.log('[批量上传] 服务端响应状态:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error('服务器返回 ' + response.status + ': ' + text.slice(0, 200));
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        progressContainer.style.display = 'none';
+        btnValidate.disabled = false;
+        btnValidate.textContent = '开始校验';
+        console.log('[批量上传] 校验结果:', data);
+
+        if (!data.success) {
+            showPageError(data.error || '校验失败，请检查文件格式');
+            return;
+        }
+
+        currentSessionId = data.session_id;
+        renderValidationResults(data);
+        validateSection.style.display = 'block';
+        validateSection.scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(err => {
+        progressContainer.style.display = 'none';
+        btnValidate.disabled = false;
+        btnValidate.textContent = '开始校验';
+        console.error('[批量上传] 错误:', err);
+        showPageError('请求失败：' + err.message + '（请打开浏览器控制台 F12 查看详情）');
+    });
+});
+
+function renderValidationResults(data) {
+    // Sheet 级别错误
+    sheetErrorsContainer.innerHTML = '';
+    if (data.sheet_errors && data.sheet_errors.length > 0) {
+        data.sheet_errors.forEach(se => {
+            const div = document.createElement('div');
+            div.className = 'sheet-error-box';
+            div.innerHTML = '<strong>&#9888; 工作表错误：</strong> ' + escapeHtml(se.error);
+            sheetErrorsContainer.appendChild(div);
+        });
+    }
+
+    // 汇总：工作表数 + 有效工作表数
+    const s = data.summary;
+    let summaryHtml =
+        '<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:12px;">' +
+        '<span class="summary-item">工作表数：<b>' + s.total_sheets + '</b> 个</span>' +
+        '<span class="summary-item ok">有效工作表：<b>' + s.valid_sheets + '</b> 个</span>' +
+        '<span class="summary-item ok">有效行：<b>' + s.valid_rows + '</b></span>' +
+        '<span class="summary-item err">错误行：<b>' + s.error_rows + '</b></span>' +
+        '</div>';
+    validateSummary.innerHTML = summaryHtml;
+
+    // 每个有效工作表的明细
+    if (data.sheet_details && Object.keys(data.sheet_details).length > 0) {
+        let detailHtml = '<table class="sheet-summary-table"><thead><tr>' +
+            '<th>工作表名称</th><th>总行数</th><th>有效行</th><th>无效行</th></tr></thead><tbody>';
+        for (const [sheetName, detail] of Object.entries(data.sheet_details)) {
+            detailHtml += '<tr>' +
+                '<td><b>' + escapeHtml(sheetName) + '</b></td>' +
+                '<td>' + detail.total_rows + '</td>' +
+                '<td style="color:#2e7d32;">' + detail.valid_rows + '</td>' +
+                '<td style="color:#c62828;">' + detail.error_rows + '</td>' +
+                '</tr>';
+        }
+        detailHtml += '</tbody></table>';
+        validateSummary.innerHTML += detailHtml;
+    }
+
+    // 表格（序号为顺序编号，非 Excel 行号）
+    validateTableBody.innerHTML = '';
+    data.rows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = row.is_valid ? 'row-ok' : 'row-err';
+
+        tr.innerHTML =
+            '<td>' + escapeHtml(row.sheet_name) + '</td>' +
+            '<td class="col-seq">' + (idx + 1) + '</td>' +
+            '<td><code>' + escapeHtml(row.specimen_number) + '</code></td>' +
+            '<td>' + escapeHtml(row.chinese_name) + '</td>' +
+            '<td><em>' + escapeHtml(row.latin_name) + '</em></td>' +
+            '<td class="col-status"><span class="badge-status ' + (row.is_valid ? 'badge-ok' : 'badge-err') + '">' +
+            (row.is_valid ? '&#10003; 通过' : '&#10007; 错误') + '</span></td>' +
+            '<td>' + (row.errors.length > 0 ? '<ul class="error-list"><li>' + row.errors.map(escapeHtml).join('</li><li>') + '</li></ul>' : '—') + '</td>';
+
+        validateTableBody.appendChild(tr);
+    });
+
+    // 导入按钮
+    const validCount = data.summary.valid_rows;
+    if (validCount > 0) {
+        btnImport.disabled = false;
+        btnImportCount.textContent = '（' + validCount + ' 条有效数据）';
+    } else {
+        btnImport.disabled = true;
+        btnImportCount.textContent = '';
+    }
+}
+
+// ========== Import ==========
+btnImport.addEventListener('click', () => {
+    if (!currentSessionId) {
+        showPageError('请先完成校验');
+        return;
+    }
+
+    btnImport.disabled = true;
+    btnImport.innerHTML = '<span class="spinner"></span>正在导入...';
+
+    const formData = new FormData();
+    formData.append('csrf_token', csrfToken);
+
+    fetch('{{ url_for("admin.batch_upload_import") }}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': csrfToken }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error('服务器返回 ' + response.status + ': ' + text.slice(0, 200));
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        btnImport.innerHTML = '确认导入';
+        btnImport.disabled = true;
+
+        if (!data.success) {
+            showPageError(data.error || '导入失败');
+            return;
+        }
+
+        renderImportResults(data);
+        importSection.style.display = 'block';
+        importSection.scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(err => {
+        btnImport.innerHTML = '确认导入';
+        btnImport.disabled = false;
+        console.error('[批量上传] 导入错误:', err);
+        showPageError('导入请求失败：' + err.message);
+    });
+});
+
+function renderImportResults(data) {
+    importSummary.innerHTML =
+        '<span class="summary-item ok">&#10003; 成功导入：<b>' + data.imported + '</b> 条</span>' +
+        '<span class="summary-item err">&#10007; 导入失败：<b>' + data.failed + '</b> 条</span>';
+
+    importFailedContainer.innerHTML = '';
+    if (data.failed_rows && data.failed_rows.length > 0) {
+        let html = '<table class="result-table"><thead><tr><th class="col-sheet">工作表</th><th class="col-seq">序号</th><th class="col-number">标本编号</th><th>失败原因</th></tr></thead><tbody>';
+        data.failed_rows.forEach((fr, idx) => {
+            html += '<tr class="row-err">' +
+                '<td>' + escapeHtml(fr.sheet_name) + '</td>' +
+                '<td class="col-seq">' + (idx + 1) + '</td>' +
+                '<td><code>' + escapeHtml(fr.specimen_number) + '</code></td>' +
+                '<td style="color:#c62828;">' + escapeHtml(fr.reason) + '</td>' +
+                '</tr>';
+        });
+        html += '</tbody></table>';
+        importFailedContainer.innerHTML = html;
+    }
+}
+
+// ========== Cancel ==========
+btnCancel.addEventListener('click', () => {
+    validateSection.style.display = 'none';
+    resetFileSelection();
+    currentSessionId = null;
+});
+
+// ========== Escape HTML ==========
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
