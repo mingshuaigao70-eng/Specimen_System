@@ -24,7 +24,7 @@ class Specimen(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('specimen_category.id'), nullable=False, index=True)
     specimen_number = db.Column(db.String(50), nullable=False, unique=True, index=True)
     chinese_name = db.Column(db.String(100), index=True)
-    latin_name = db.Column(db.String(200), nullable=False)
+    latin_name = db.Column(db.String(200), nullable=False, index=True)
     alias = db.Column(db.Text)
     phylum = db.Column(db.String(50))
     class_name = db.Column(db.String(50))
@@ -36,8 +36,8 @@ class Specimen(db.Model):
     collect_time = db.Column(db.DateTime, nullable=False, index=True)
     collect_location = db.Column(db.String(255))
 
-    longitude = db.Column(db.Numeric(10,7))
-    latitude = db.Column(db.Numeric(9,6))
+    longitude = db.Column(db.Numeric(10,6))
+    latitude = db.Column(db.Numeric(10,6))
 
     appraiser = db.Column(db.String(50))
     appraisal_time = db.Column(db.DateTime)
@@ -73,7 +73,7 @@ class SpecimenCategory(db.Model):
     __tablename__ = 'specimen_category'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, comment='大类ID')
     name = db.Column(db.String(100), unique=True, nullable=False, comment='类别名称')
-    code = db.Column(db.String(10), unique=True, nullable=True, comment='唯一性代码，如A/B/C，用于标本编号')
+    code = db.Column(db.String(10), unique=True, nullable=False, comment='唯一性代码，如A/B/C，用于标本编号')
     image = db.Column(db.String(255), nullable=True, comment='大类封面图片路径')
     description = db.Column(db.Text, comment='说明（可选）')
     created_by = db.Column(db.String(50), comment='创建人')
@@ -96,5 +96,6 @@ class PageContent(db.Model):
     section = db.Column(db.String(50), nullable=False, comment='区块标识')
     content = db.Column(db.Text, nullable=True, comment='内容文本')
     updated_by = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, nullable=False, default=now)
     updated_at = db.Column(db.DateTime, default=now, onupdate=now)
     __table_args__ = (db.UniqueConstraint('page', 'section', name='uq_page_section'),)

@@ -4,6 +4,7 @@ from ..models import SpecimenCategory, Specimen, SpecimenImage, PageContent
 from ..extensions import db
 from ..utils.search_utils import build_specimen_search_filter
 from app.utils.time_utils import CHINA_TZ
+from sqlalchemy.orm import selectinload
 import os
 
 main_bp = Blueprint('main', __name__)
@@ -12,7 +13,9 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 @login_required
 def index():
-    categories = SpecimenCategory.query.all()
+    categories = SpecimenCategory.query.options(
+        selectinload(SpecimenCategory.specimens)
+    ).all()
 
     # 为每个分类查找对应图片（优先使用上传的封面图，其次按名称匹配）
     category_images = {}
@@ -87,7 +90,9 @@ def specimen_list(category_id):
     genus_f = request.args.get('genus', '').strip()
     species_f = request.args.get('species', '').strip()
 
-    query = Specimen.query.filter_by(category_id=category_id)
+    query = Specimen.query.options(
+        selectinload(Specimen.images)
+    ).filter_by(category_id=category_id)
 
     # 大类总数（不受筛选影响）
     category_total = Specimen.query.filter_by(category_id=category_id).count()
@@ -185,7 +190,7 @@ def search():
 
     page = request.args.get('page', 1, type=int)
     per_page = 24
-    pagination = Specimen.query.filter(search_filter) \
+    pagination = Specimen.query.options(selectinload(Specimen.images)).filter(search_filter) \
         .order_by(Specimen.id.desc()) \
         .paginate(page=page, per_page=per_page, error_out=False)
 

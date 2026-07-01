@@ -929,10 +929,14 @@
 <!-- ========== Image Lightbox ========== -->
 <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox(event)">
     <button class="lightbox-close" onclick="closeLightbox()" aria-label="关闭">&times;</button>
+    {% if images and images|length > 1 %}
     <button class="lightbox-nav prev" onclick="event.stopPropagation(); lightboxNav(-1)" aria-label="上一张">&#10094;</button>
     <button class="lightbox-nav next" onclick="event.stopPropagation(); lightboxNav(1)" aria-label="下一张">&#10095;</button>
+    {% endif %}
     <img class="lightbox-img" id="lightboxImg" src="" alt="标本大图" onclick="event.stopPropagation()">
+    {% if images and images|length > 1 %}
     <div class="lightbox-counter" id="lightboxCounter"></div>
+    {% endif %}
 </div>
 
 </div><!-- /page-wrapper -->

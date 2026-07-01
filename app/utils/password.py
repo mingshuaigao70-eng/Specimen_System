@@ -1,3 +1,4 @@
+import hmac
 import hashlib
 import os
 # 生成密码hash
@@ -31,4 +32,4 @@ def verify_scrypt_hash(password, stored_hash):
         p=1
     )
 
-    return new_key.hex() == key_hex
+    return hmac.compare_digest(new_key.hex(), key_hex)

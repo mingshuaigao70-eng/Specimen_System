@@ -246,22 +246,6 @@ def validate_row(row_data: dict, image_dir: str | None, max_image_size: int = 1 
                 ratio = max(width, height) / max(min(width, height), 1)
                 if ratio > 10:
                     errors.append(f'图片文件「{fname}」宽高比异常（{width}×{height}，比例 {ratio:.0f}:1）')
-                # ④-c 色彩分布检查：纯色/低信息量图
-                if img.mode in ('RGB', 'RGBA'):
-                    # 采样缩小到 100x100 后计算像素方差
-                    img_small = img.resize((100, 100))
-                    pixels = list(img_small.getdata())
-                    # 计算 RGB 各通道的方差
-                    if img.mode == 'RGBA':
-                        rgb_pixels = [(p[0], p[1], p[2]) for p in pixels]
-                    else:
-                        rgb_pixels = pixels
-                    r_var = _variance([p[0] for p in rgb_pixels])
-                    g_var = _variance([p[1] for p in rgb_pixels])
-                    b_var = _variance([p[2] for p in rgb_pixels])
-                    total_var = r_var + g_var + b_var
-                    if total_var < 500:  # 方差过低说明是纯色块/二维码/文档截图
-                        errors.append(f'图片文件「{fname}」色彩单一，可能不是标本照片（色差指数 {total_var:.0f}）')
                 img.close()
             except Exception:
                 errors.append(f'图片文件「{fname}」已损坏或无法正确读取')
@@ -535,16 +519,6 @@ def _field_to_column_name(field_name: str) -> str:
             return cn_name
     return field_name
 
-
-def _variance(values: list) -> float:
-    """
-    计算一组数值的方差（用于图像色彩分布检测）。
-    纯色/低信息量图像各通道方差接近 0。
-    """
-    if not values:
-        return 0.0
-    mean = sum(values) / len(values)
-    return sum((v - mean) ** 2 for v in values) / len(values)
 
 
 def _split_image_filenames(value: str) -> list[str]:
